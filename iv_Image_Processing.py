@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[2]:
+# In[1]:
 
 
 import xarray as xr
@@ -17,7 +17,6 @@ import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import nbimporter
 from datetime import datetime, timedelta
 from matplotlib import ticker
 from IPython.display import Image, display, HTML
@@ -347,20 +346,22 @@ def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, bina
 # In[23]:
 
 
-# Paths
-source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages'
-destination_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral'
-
-# Process the directory
-process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True)
+if __name__ == '__main__':
+    # Paths
+    source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages'
+    destination_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral'
+    
+    # Process the directory
+    process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True)
 
 
 # In[21]:
 
 
-# Display the processed image
-image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png'
-display(Image(filename=image_path, width=700))  
+if __name__ == '__main__':
+    # Display the processed image
+    image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png'
+    display(Image(filename=image_path, width=700))  
 
 
 # The **threshold** value must be chosen carefully so as to leave all the algae, but not leave the clouds, land or other undesirable features. 
@@ -370,8 +371,9 @@ display(Image(filename=image_path, width=700))
 # In[19]:
 
 
-image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Binarized_algae_distribution_20220724_thresh_200.png'
-display(Image(filename=image_path, width=700))  
+if __name__ == '__main__':
+    image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Binarized_algae_distribution_20220724_thresh_200.png'
+    display(Image(filename=image_path, width=700))  
 
 
 # This is what the binarized version looks like for **threshold=200**.
@@ -385,22 +387,23 @@ display(Image(filename=image_path, width=700))
 # In[17]:
 
 
-start_date = '20220718'
-end_date = '20220724'
-directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-output_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages' 
-latitude_range = (12, 17)  
-longitude_range = (-67, -60) 
-
-# Calculate the 1-day averages and save them
-process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="binary")
-
-# Paths
-source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages'
-destination_directory = '/home/yahia/Documents/Jupyter/Images/Sargassum/ABI_Averages_Binarized_Bilateral'
-
-# Process the directory (filter, binarize and crop the images)
-process_directory(source_directory, destination_directory, threshold=180, bilateral=True, binarize=True)
+if __name__ == '__main__':
+    start_date = '20220718'
+    end_date = '20220724'
+    directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
+    output_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages' 
+    latitude_range = (12, 17)  
+    longitude_range = (-67, -60) 
+    
+    # Calculate the 1-day averages and save them
+    process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="binary")
+    
+    # Paths
+    source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages'
+    destination_directory = '/home/yahia/Documents/Jupyter/Images/Sargassum/ABI_Averages_Binarized_Bilateral'
+    
+    # Process the directory (filter, binarize and crop the images)
+    process_directory(source_directory, destination_directory, threshold=180, bilateral=True, binarize=True)
 
 
 # ## Producing Viridis Images
@@ -409,22 +412,23 @@ process_directory(source_directory, destination_directory, threshold=180, bilate
 # In[30]:
 
 
-start_date = '20220718'
-end_date = '20220724'
-directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-output_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Viridis' 
-latitude_range = (12, 17)  
-longitude_range = (-67, -60) 
-
-# Calculate the 1-day averages and save them
-process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
-
-# Paths
-source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Viridis'
-destination_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis'
-
-# Process the directory (filter, binarize and crop the images)
-process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
+if __name__ == '__main__':
+    start_date = '20220718'
+    end_date = '20220724'
+    directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
+    output_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Viridis' 
+    latitude_range = (12, 17)  
+    longitude_range = (-67, -60) 
+    
+    # Calculate the 1-day averages and save them
+    process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
+    
+    # Paths
+    source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Viridis'
+    destination_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis'
+    
+    # Process the directory (filter, binarize and crop the images)
+    process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
 
 
 # In[ ]:

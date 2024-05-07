@@ -5,7 +5,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[3]:
 
 
 import xarray as xr
@@ -14,7 +14,6 @@ import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import nbimporter
 from datetime import datetime, timedelta
 from matplotlib import ticker
 
@@ -53,12 +52,13 @@ def histogram(file_path):
 # In[3]:
 
 
-abi_path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-00.nc"
-histogram(abi_path)
-olci_path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220724.nc" 
-histogram(olci_path)
-modis_path = "/media/yahia/ballena/CLS/modis-aqua-global-lr/cls-modis-aqua-global-lr_1d_20220724.nc"  
-histogram(modis_path)
+if __name__ == '__main__':
+    abi_path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-00.nc"
+    histogram(abi_path)
+    olci_path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220724.nc" 
+    histogram(olci_path)
+    modis_path = "/media/yahia/ballena/CLS/modis-aqua-global-lr/cls-modis-aqua-global-lr_1d_20220724.nc"  
+    histogram(modis_path)
 
 
 # All histograms show a very high frequency (about 10⁷) for lower values which correspond to land, clouds or sea. For this reason, we're going to try to change the scale of the colormaps to try and have more contrast between the algae and the rest of the image.
@@ -122,10 +122,11 @@ def visualize_4(file_path, lat_range=None, lon_range=None, color="viridis", vmax
 # In[9]:
 
 
-path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220724.nc" 
-visualize_4(path,(12,17),(-67,-60))
-visualize_4(path,(12,17),(-67,-60),"binary",vmax=0.01)
-visualize(path,(12,17),(-67,-60))
+if __name__ == '__main__':
+    path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220724.nc" 
+    visualize_4(path,(12,17),(-67,-60))
+    visualize_4(path,(12,17),(-67,-60),"binary",vmax=0.01)
+    visualize(path,(12,17),(-67,-60))
 
 
 # Another idea we've implemented here is to decrease the max ***vmax*** for the colorbar so that positive values change color very quickly. This method is very effective to distinguish the algae from the rest of the image, ***the smaller vmax is, the higher the contrast***. A good idea to try and maximize the contrast is to choose the binary cmap and set vmax to a very low value like ***vmax = 0.01*** for example (alternatively, we can simply set apply a map to the data array that makes all positive values very large, but I believe this method is computationally more efficient). 
@@ -139,11 +140,12 @@ visualize(path,(12,17),(-67,-60))
 # In[10]:
 
 
-path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-40.nc" 
-visualize_4(path,(12,17),(-67,-60),vmax = 0.005)
-visualize_3(path,(12,17),(-67,-60))
-visualize_2(path,(12,17),(-67,-60))
-visualize(path,(12,17),(-67,-60))
+if __name__ == '__main__':
+    path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-40.nc" 
+    visualize_4(path,(12,17),(-67,-60),vmax = 0.005)
+    visualize_3(path,(12,17),(-67,-60))
+    visualize_2(path,(12,17),(-67,-60))
+    visualize(path,(12,17),(-67,-60))
 
 
 # Applying these display functions on ABI-GOES images doesn't seem to produce the same results as on OLCI, the default visualization function still isn't very useful for detecting the algae, the second one, *visualize_2* shows good contrast in the non-nan values, **we can see in yellow the same patterns that are more clear in the OLCI image**, *visualize_3* and *visualize_4* don't seem very useful for ABI-GOES images, because they leave in a lot of pixels that do not correspond to algae.
@@ -206,9 +208,10 @@ def visualize_5(file_path, lat_range=None, lon_range=None, color="viridis", vmax
 # In[16]:
 
 
-path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-40.nc" 
-visualize_5(path,(12,17),(-67,-60),vmax = 0.001,color="winter",threshold=0)
-visualize_2(path,(12,17),(-67,-60))
+if __name__ == '__main__':
+    path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-40.nc" 
+    visualize_5(path,(12,17),(-67,-60),vmax = 0.001,color="winter",threshold=0)
+    visualize_2(path,(12,17),(-67,-60))
 
 
 # - Aside from the positive threshold, this time all values under the threshold are set to nan, so even with the threshold set to 0, it's different.

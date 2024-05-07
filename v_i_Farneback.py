@@ -22,7 +22,6 @@ import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import nbimporter
 from datetime import datetime, timedelta
 from matplotlib import ticker
 from IPython.display import Image, display

@@ -7,7 +7,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[2]:
 
 
 #%matplotlib widget
@@ -18,7 +18,6 @@ import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import nbimporter
 from datetime import datetime, timedelta
 from matplotlib import ticker
 from IPython.display import Image
@@ -157,17 +156,18 @@ def calculate_mean(time_list, lat_range=None, lon_range=None, threshold=0):
 # In[36]:
 
 
-# Generating the time list
-times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
-
-# Calculating the aggregate data for this time period
-average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result and comparing it to the OLCI and CLS datastore images
-visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0.0001)
-path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220724.nc" 
-visualize_4(path,(12,17),(-67,-60),color="viridis")
-Image(filename='/home/yahia/Documents/Jupyter/Sargassum/Images/CLS_ABI_20220724.png')
+if __name__ == '__main__':
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+    # Calculating the aggregate data for this time period
+    average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result and comparing it to the OLCI and CLS datastore images
+    visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0.0001)
+    path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220724.nc" 
+    visualize_4(path,(12,17),(-67,-60),color="viridis")
+    Image(filename='/home/yahia/Documents/Jupyter/Sargassum/Images/CLS_ABI_20220724.png')
 
 
 # - This result is pretty good, it shows pretty clearly the algae (without much interference from the clouds).
@@ -245,18 +245,19 @@ def calculate_median(time_list, lat_range=None, lon_range=None, threshold=0):
 # In[7]:
 
 
-# Generating the time list
-times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
-
-# Calculating the median data for this time period
-median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-# Calculating the aggregate data for this time period
-average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result and comparing it to the mean 
-visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
-visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+if __name__ == '__main__':
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+    # Calculating the median data for this time period
+    median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    # Calculating the aggregate data for this time period
+    average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result and comparing it to the mean 
+    visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+    visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
 # Although the difference is not very big, it is non negligible and we can see that median function produces rafts that are a bit thinner, which is preferable.
@@ -264,35 +265,37 @@ visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="vir
 # In[9]:
 
 
-# Generating the time list
-times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
-
-# Calculating the max data for this time period
-max_algae_distribution = calculate_max(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-# Calculating the mean data for this time period
-average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result and comparing it to the mean
-visualize_aggregate(max_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
-visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+if __name__ == '__main__':
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+    # Calculating the max data for this time period
+    max_algae_distribution = calculate_max(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    # Calculating the mean data for this time period
+    average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result and comparing it to the mean
+    visualize_aggregate(max_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+    visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
 # In[11]:
 
 
-# Generating the time list
-times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
-
-# Calculating the min data for this time period
-min_algae_distribution = calculate_min(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-# Calculating the mean data for this time period
-average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result and comparing it to the mean
-visualize_aggregate(min_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
-visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+if __name__ == '__main__':
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+    # Calculating the min data for this time period
+    min_algae_distribution = calculate_min(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    # Calculating the mean data for this time period
+    average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result and comparing it to the mean
+    visualize_aggregate(min_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+    visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
 # ### Calculating Percentiles
@@ -350,18 +353,19 @@ def calculate_percentile(time_list, lat_range=None, lon_range=None, threshold=0,
 # In[ ]:
 
 
-# Generating the time list
-times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
-
-# Calculating the percentile data for this time period
-percentile_algae_distribution = calculate_percentile(times,lat_range=(12, 17), lon_range=(-67, -60), percentile=100)
-
-# Calculating the median data for this time period
-median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result and comparing it to the mean
-visualize_aggregate(percentile_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
-visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+if __name__ == '__main__':
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+    # Calculating the percentile data for this time period
+    percentile_algae_distribution = calculate_percentile(times,lat_range=(12, 17), lon_range=(-67, -60), percentile=100)
+    
+    # Calculating the median data for this time period
+    median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result and comparing it to the mean
+    visualize_aggregate(percentile_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+    visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
 # For the moment, I see no reason we'd need to need any percentiles other than the median (percentile=50), but this is a generalization, which could be useful to factor code.
@@ -372,14 +376,15 @@ visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viri
 # In[7]:
 
 
-# Generating the time list
-times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 13, 00), interval=10)
-
-# Calculating the median data for this time period
-median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result
-visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+if __name__ == '__main__':
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 13, 00), interval=10)
+    
+    # Calculating the median data for this time period
+    median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result
+    visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
 # In the span of an hour, the clouds have not moved enough for us to get a clear image, so on its own and with the functions we have so far, an hour doesn't provide enough data to be able to detect the algae. 
@@ -392,17 +397,18 @@ visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viri
 # In[ ]:
 
 
-# Generating the time list
-times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 16, 00), interval=10)
-times2 = time_list(start_time=datetime(2022, 7, 24, 14, 0), end_time=datetime(2022, 7, 24, 16, 00), interval=10)
-
-# Calculating the median data for this time period
-median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
-median_algae_distribution_2 = calculate_median(times2,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result
-visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
-visualize_aggregate(median_algae_distribution_2, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+if __name__ == '__main__':
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 16, 00), interval=10)
+    times2 = time_list(start_time=datetime(2022, 7, 24, 14, 0), end_time=datetime(2022, 7, 24, 16, 00), interval=10)
+    
+    # Calculating the median data for this time period
+    median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
+    median_algae_distribution_2 = calculate_median(times2,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result
+    visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+    visualize_aggregate(median_algae_distribution_2, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
 # We should come back to this, but for now we're going to work on 1-day ABI-GOES averages.
@@ -410,13 +416,14 @@ visualize_aggregate(median_algae_distribution_2, (12, 17), (-67, -60), color="vi
 # In[39]:
 
 
-# Generating the time list
-day = 27
-times = time_list(start_time=datetime(2022, 7, day, 10, 0), end_time=datetime(2022, 7, day, 18, 50), interval=10)
-
-# Calculating the median data for this time period
-median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
-
-#Visualizing the result
-visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+if __name__ == '__main__':
+    # Generating the time list
+    day = 27
+    times = time_list(start_time=datetime(2022, 7, day, 10, 0), end_time=datetime(2022, 7, day, 18, 50), interval=10)
+    
+    # Calculating the median data for this time period
+    median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
+    
+    #Visualizing the result
+    visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
