@@ -31,7 +31,7 @@ from PIL import Image as PILImage
 from ii_Data_Manipulation import visualize_4
 from iii_GOES_average import time_list, visualize_aggregate, calculate_median
 from iv_Image_Processing import collect_times, crop_image, save_aggregate, binarize_image, bilateral_image, process_dates, process_directory
-from v_Motion_Estimation import plot_optical_flow, plot_optical_flow_vectors, overlay_optical_flow_vectors, create_optical_flow_gif, plot_vector_field, display_image_cv
+from v_i_OF_Functions import plot_of, plot_of_vectors, overlay_of_vectors, create_of_gif, plot_vector_field, display_image_cv
 
 
 # ## Farneback_flow
@@ -96,21 +96,23 @@ def farneback_flow(prev_img, next_img):
 # In[10]:
 
 
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-flow = farneback_flow(prev_img, next_img)
-plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
-#display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png", width =750))
+if name = '__main__':
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    flow = farneback_flow(prev_img, next_img)
+    plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    #display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png", width =750))
 
 
 # In[9]:
 
 
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
-flow = farneback_flow(prev_img, next_img)
-plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
-#display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
+if name = '__main__':
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
+    flow = farneback_flow(prev_img, next_img)
+    plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    #display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
 
 
 # ## Changing Parameters
