@@ -19,7 +19,6 @@ import matplotlib.colors as colors
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
-import nbimporter
 from datetime import datetime, timedelta
 from matplotlib import ticker
 from IPython.display import Image, display
@@ -29,6 +28,7 @@ from PIL import Image as PILImage
 from ii_Data_Manipulation import visualize_4
 from iii_GOES_average import time_list, visualize_aggregate, calculate_median
 from iv_Image_Processing import collect_times, crop_image, save_aggregate, binarize_image, bilateral_image, process_dates, process_directory
+from v_i_OF_Functions import plot_of, plot_of_vectors, overlay_of_vectors, create_of_gif, plot_vector_field, display_image_cv
 
 
 # ## Optical Flow Algorithms
@@ -109,10 +109,11 @@ def plot_optical_flow(flow):
 # In[6]:
 
 
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-flow = farneback_flow(prev_img, next_img)
-plot_optical_flow(flow)
+if __name__ == '__main__':
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    flow = farneback_flow(prev_img, next_img)
+    plot_optical_flow(flow)
 
 
 # We can also visualize the motion field through vectors.
@@ -145,11 +146,12 @@ def plot_optical_flow_vectors(flow, base_img, step=16, scale=1):
 # In[6]:
 
 
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-flow = farneback_flow(prev_img, next_img)
-plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
-display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png", width =750))
+if __name__ == '__main__':
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    flow = farneback_flow(prev_img, next_img)
+    plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png", width =750))
 
 
 # In[21]:
@@ -208,15 +210,16 @@ def create_optical_flow_gif(images, gif_path, fps=1, loop=10):
 # In[9]:
 
 
-# Saving the GIF
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-images = [prev_img, next_img]
-create_optical_flow_gif(images, '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif', fps=0.2, loop=10)
-
-# Displaying the GIF
-gif_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif' 
-display(Image(filename=gif_path))
+if __name__ == '__main__':
+    # Saving the GIF
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    images = [prev_img, next_img]
+    create_optical_flow_gif(images, '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif', fps=0.2, loop=10)
+    
+    # Displaying the GIF
+    gif_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif' 
+    display(Image(filename=gif_path))
 
 
 # This algorithm doesn't track the images very well, maybe trying with a viridis color map would produce better results.
@@ -228,25 +231,27 @@ display(Image(filename=gif_path))
 # In[10]:
 
 
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
-flow = farneback_flow(prev_img, next_img)
-plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
-display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
+if __name__ == '__main__':
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
+    flow = farneback_flow(prev_img, next_img)
+    plot_optical_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
 
 
 # In[11]:
 
 
-# Saving the GIF
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
-images = [prev_img, next_img]
-create_optical_flow_gif(images, '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif', fps=0.4, loop=10)
-
-# Displaying the GIF
-gif_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif' 
-display(Image(filename=gif_path))
+if __name__ == '__main__':
+    # Saving the GIF
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
+    images = [prev_img, next_img]
+    create_optical_flow_gif(images, '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif', fps=0.4, loop=10)
+    
+    # Displaying the GIF
+    gif_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/GIFs/optical_flow.gif' 
+    display(Image(filename=gif_path))
 
 
 # ### 2. Lucas-Kanade
@@ -310,26 +315,27 @@ def plot_vector_field(p0, p1, status):
 # In[14]:
 
 
-# Binarized
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-p0, p1, st, err = LK_flow(prev_img, next_img)
-if p0 is not None and p1 is not None:
-    # Filter out only points with successful tracking
-    good_new = p1[st==1]
-    good_old = p0[st==1]
-
-    plot_vector_field(good_old, good_new, st[st==1])
-# Viridis
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
-p0, p1, st, err = LK_flow(prev_img, next_img)
-if p0 is not None and p1 is not None:
-    # Filter out only points with successful tracking
-    good_new = p1[st==1]
-    good_old = p0[st==1]
-
-    plot_vector_field(good_old, good_new, st[st==1])
+if __name__ == '__main__':
+    # Binarized
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    p0, p1, st, err = LK_flow(prev_img, next_img)
+    if p0 is not None and p1 is not None:
+        # Filter out only points with successful tracking
+        good_new = p1[st==1]
+        good_old = p0[st==1]
+    
+        plot_vector_field(good_old, good_new, st[st==1])
+    # Viridis
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
+    p0, p1, st, err = LK_flow(prev_img, next_img)
+    if p0 is not None and p1 is not None:
+        # Filter out only points with successful tracking
+        good_new = p1[st==1]
+        good_old = p0[st==1]
+    
+        plot_vector_field(good_old, good_new, st[st==1])
 
 
 # This function doesn't plot the image directly but returns it instead.
@@ -392,12 +398,13 @@ def display_image_cv(image_array):
 # In[17]:
 
 
-# Binary image
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-p0, p1, st, err = LK_flow(prev_img, next_img)
-img_with_vectors = LK_vector_field(p0, p1, st, prev_img)
-display_image_cv(img_with_vectors)
+if __name__ == '__main__':
+    # Binary image
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    p0, p1, st, err = LK_flow(prev_img, next_img)
+    img_with_vectors = LK_vector_field(p0, p1, st, prev_img)
+    display_image_cv(img_with_vectors)
 
 
 # ### Image Superposition
@@ -444,17 +451,19 @@ def superpose_images(image1, image2, color1=(255, 0, 0), color2=(0, 255, 0)):
 # In[19]:
 
 
-prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-superposed = superpose_images(prev_img, next_img)
-display_image_cv(superposed)
+if __name__ == '__main__':
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    superposed = superpose_images(prev_img, next_img)
+    display_image_cv(superposed)
 
 
 # In[ ]:
 
 
-motion_field = overlay_optical_flow_vectors(flow, superposed, step=16, scale=1, color=(0,0,255))
-display_image_cv(motion_field)
+if __name__ == '__main__':
+    motion_field = overlay_optical_flow_vectors(flow, superposed, step=16, scale=1, color=(0,0,255))
+    display_image_cv(motion_field)
 
 
 # In[ ]:

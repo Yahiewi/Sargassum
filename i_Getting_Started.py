@@ -9,7 +9,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[3]:
+# In[1]:
 
 
 import xarray as xr
@@ -81,10 +81,11 @@ def visualize(file_path, lat_range = None, lon_range = None, color = "viridis"):
 # In[12]:
 
 
-file_path = "/media/yahia/ballena/CLS/modis-aqua-global-lr/cls-modis-aqua-global-lr_1d_20220720.nc"
-visualize(file_path)
-visualize(file_path,(12,17),(-67,-60),"magma")
-visualize(file_path,(12,17),(-67,-60),"binary")
+if __name__ == '__main__':
+    file_path = "/media/yahia/ballena/CLS/modis-aqua-global-lr/cls-modis-aqua-global-lr_1d_20220720.nc"
+    visualize(file_path)
+    visualize(file_path,(12,17),(-67,-60),"magma")
+    visualize(file_path,(12,17),(-67,-60),"binary")
 
 
 # ## OLCI Visualization
@@ -92,9 +93,10 @@ visualize(file_path,(12,17),(-67,-60),"binary")
 # In[5]:
 
 
-file_path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220720.nc"
-visualize(file_path)
-visualize(file_path,(12,17),(-67,-60),"viridis")
+if __name__ == '__main__':
+    file_path = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_20220720.nc"
+    visualize(file_path)
+    visualize(file_path,(12,17),(-67,-60),"viridis")
 
 
 # ## ABI Visualization
@@ -102,9 +104,10 @@ visualize(file_path,(12,17),(-67,-60),"viridis")
 # In[5]:
 
 
-file_path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220722_10-50.nc"
-visualize(file_path)
-visualize(file_path,(9,17),(-63,-60))
+if __name__ == '__main__':
+    file_path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220722_10-50.nc"
+    visualize(file_path)
+    visualize(file_path,(9,17),(-63,-60))
 
 
 # ## Visualization Comments
@@ -137,10 +140,11 @@ visualize(file_path,(9,17),(-63,-60))
 # In[7]:
 
 
-# Visualizing 6 of the ABI-GOES images of the region on 20/07/2022:
-for i in range(6):
-    path_file = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220720_11-" + str(i) + "0.nc" 
-    visualize(path_file,(12,17),(-67,-60))
+if __name__ == '__main__':
+    # Visualizing 6 of the ABI-GOES images of the region on 20/07/2022:
+    for i in range(6):
+        path_file = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220720_11-" + str(i) + "0.nc" 
+        visualize(path_file,(12,17),(-67,-60))
 
 
 # ### Comments
@@ -154,10 +158,11 @@ for i in range(6):
 # In[8]:
 
 
-# Visualizing 7 of the OLCI images of the region on the week starting from 20/07/2022:
-for i in range(7):
-    path_file = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_2022072" + str(i) + ".nc" 
-    visualize(path_file,(12,17),(-67,-60))
+if __name__ == '__main__':
+    # Visualizing 7 of the OLCI images of the region on the week starting from 20/07/2022:
+    for i in range(7):
+        path_file = "/media/yahia/ballena/CLS/olci-s3-global-lr/cls-olci-s3-global-lr_1d_2022072" + str(i) + ".nc" 
+        visualize(path_file,(12,17),(-67,-60))
 
 
 # ### Comments
@@ -171,10 +176,11 @@ for i in range(7):
 # In[9]:
 
 
-# Visualizing 7 of the OLCI images of the region on the week starting from 20/07/2022:
-for i in range(7):
-    path_file = "/media/yahia/ballena/CLS/modis-aqua-global-lr/cls-modis-aqua-global-lr_1d_2022072" + str(i) + ".nc" 
-    visualize(path_file,(12,17),(-67,-60))
+if __name__ == '__main__':
+    # Visualizing 7 of the OLCI images of the region on the week starting from 20/07/2022:
+    for i in range(7):
+        path_file = "/media/yahia/ballena/CLS/modis-aqua-global-lr/cls-modis-aqua-global-lr_1d_2022072" + str(i) + ".nc" 
+        visualize(path_file,(12,17),(-67,-60))
 
 
 # ### Comments
@@ -186,8 +192,9 @@ for i in range(7):
 # In[10]:
 
 
-# Visualizing 6 of the ABI-GOES images of the region on 24/07/2022:
-for i in range(6):
-    path_file = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-" + str(i) + "0.nc" 
-    visualize(path_file,(12,17),(-67,-60))
+if __name__ == '__main__':
+    # Visualizing 6 of the ABI-GOES images of the region on 24/07/2022:
+    for i in range(6):
+        path_file = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220724_12-" + str(i) + "0.nc" 
+        visualize(path_file,(12,17),(-67,-60))
 
