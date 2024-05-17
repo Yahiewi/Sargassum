@@ -29,7 +29,7 @@ from ii_Data_Manipulation import visualize_4
 # ## Time List Generator
 # First, we should write a function that generates a lost of the times in the time intervals we need to make the importation of data easier. 
 
-# In[2]:
+# In[3]:
 
 
 def time_list(start_time, end_time, interval):
@@ -58,7 +58,7 @@ def time_list(start_time, end_time, interval):
 # ## Function to visualize aggregate data 
 # We should first write a function **(very similar to visualize_5, maybe we should make it use visualize_5)** to visualize the aggregate motion of the algae, this function would take the aggregate_data we're going to calculate as argument instead of the path to the file.
 
-# In[16]:
+# In[4]:
 
 
 def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0, output_filepath=None, filter_clouds=True):
@@ -106,7 +106,7 @@ def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="v
 # - Note: **This is only adapted to ABI-GOES for the moment.**
 # - **We can and should optimize this by making it calculate the aggregate on a selected region instead of the whole image.**
 
-# In[14]:
+# In[5]:
 
 
 def calculate_mean(time_list, lat_range=None, lon_range=None, threshold=0):
@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
 # ### Calculating Median
 
-# In[18]:
+# In[6]:
 
 
 def calculate_median(time_list, lat_range=None, lon_range=None, threshold=0):
@@ -394,7 +394,7 @@ if __name__ == '__main__':
 # 
 # But how could we quantify whether the solution we settle on is good enough or not? Maybe we could compare the Algae Ratio **$Ar= \frac{\text{number of pixels with algae}}{\text{number of pixels with algae in mean image}} $** to an Aglae Ratio Threshold **Art** where we'd consider an image to be satisfactory if **$Ar > Art$**.
 
-# In[ ]:
+# In[7]:
 
 
 if __name__ == '__main__':
@@ -413,17 +413,22 @@ if __name__ == '__main__':
 
 # We should come back to this, but for now we're going to work on 1-day ABI-GOES averages.
 
-# In[39]:
+# In[8]:
 
 
 if __name__ == '__main__':
     # Generating the time list
-    day = 27
-    times = time_list(start_time=datetime(2022, 7, day, 10, 0), end_time=datetime(2022, 7, day, 18, 50), interval=10)
+    times = time_list(start_time=datetime(2022, 9, 28, 10, 0), end_time=datetime(2022, 9, 28, 18, 50), interval=10)
     
     # Calculating the median data for this time period
     median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
     
     #Visualizing the result
     visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+
+
+# In[ ]:
+
+
+
 

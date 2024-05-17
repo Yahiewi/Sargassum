@@ -96,7 +96,7 @@ if __name__ == '__main__':
     display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
 
 
-# In[7]:
+# In[6]:
 
 
 if __name__ == '__main__':
@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
 # ### Trying Lucas-Kanade
 
-# In[20]:
+# In[8]:
 
 
 if __name__ == '__main__':
@@ -141,7 +141,7 @@ if __name__ == '__main__':
 
 # ### OpenCV Image Display
 
-# In[ ]:
+# In[9]:
 
 
 if __name__ == '__main__':
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 # ### Image Superposition
 # This is a function that takes two images (preferably binarized for clarity) and superposes them on top of each other with different colors.
 
-# In[ ]:
+# In[10]:
 
 
 if __name__ == '__main__':
@@ -166,11 +166,11 @@ if __name__ == '__main__':
     display_image_cv(superposed)
 
 
-# In[ ]:
+# In[13]:
 
 
 if __name__ == '__main__':
-    motion_field = overlay_optical_flow_vectors(flow, superposed, step=16, scale=1, color=(0,0,255))
+    motion_field = overlay_flow_vectors(flow, superposed, step=16, scale=1, color=(0,0,255))
     display_image_cv(motion_field)
 
 

@@ -33,7 +33,7 @@ from iii_GOES_average import time_list, visualize_aggregate, calculate_median
 
 # ### Time Collector
 
-# In[3]:
+# In[2]:
 
 
 def collect_times(date, directory):
@@ -49,7 +49,7 @@ def collect_times(date, directory):
 # ### Saving a Figure
 # Because we've encountered bugs and stack overflow when we tried to modify the function of notebook 3 by adding an optional parameter (**output_filepath**=None), which if specified saves the figure instead of showing it (and removes the legend), we've decided instead to write a new function here **save_aggregate** that can also display the image.
 
-# In[27]:
+# In[3]:
 
 
 def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0.0001, output_filepath=None, filter_clouds=True):
@@ -104,7 +104,7 @@ def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridi
 # ### Cropping Images
 # Let's write a function to crop images so as to remove the white space from the figure.
 
-# In[28]:
+# In[4]:
 
 
 def crop_image(image):
@@ -137,7 +137,7 @@ def crop_image(image):
 
 # ### Producing the Mini Database
 
-# In[29]:
+# In[5]:
 
 
 def process_dates(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis"):
@@ -174,7 +174,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
         current_date += timedelta(days=1)
 
 
-# In[11]:
+# In[6]:
 
 
 # start_date = '20220724'
@@ -188,7 +188,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
 # process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="binary")
 
 
-# In[12]:
+# In[7]:
 
 
 # #Displaying the result
@@ -203,7 +203,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
 # #### Binarizing the Images
 # Binarizing the images (indicating the presence of algae by absolute black and the rest by white) might be beneficial for our Optical Flow algorithms.
 
-# In[13]:
+# In[8]:
 
 
 def binarize_image(image, threshold):
@@ -216,7 +216,7 @@ def binarize_image(image, threshold):
 
 # #### Bilateral Filter
 
-# In[14]:
+# In[9]:
 
 
 def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
@@ -242,7 +242,7 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
     return bilateral
 
 
-# In[15]:
+# In[10]:
 
 
 # image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages/algae_distribution_20220724.png"
@@ -259,7 +259,7 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
 
 # ##### Bilateral then Binarization
 
-# In[16]:
+# In[11]:
 
 
 # image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages_Bilateral/Bilateral_algae_distribution_20220724.png"
@@ -276,7 +276,7 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
 
 # #### ~Edge Detection~
 
-# In[138]:
+# In[12]:
 
 
 def edges(image_path):
@@ -287,7 +287,7 @@ def edges(image_path):
     return edges
 
 
-# In[17]:
+# In[13]:
 
 
 # image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages_Binarized_Median/Binarized_Median_algae_distribution_20220724.png"
@@ -306,10 +306,10 @@ def edges(image_path):
 # ### Saving Images
 # This function takes as input images and applies a certain function (for now bilateral_function then binarize_image but we could generalize this to work with other functions) to them and then saves them in the provided directory.
 
-# In[25]:
+# In[23]:
 
 
-def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, binarize=False, crop=True):
+def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, binarize=False, crop=True, negative=False):
     # # Ensure the destination directory exists
     # if not os.path.exists(dest_dir):
     #     os.makedirs(dest_dir)
@@ -332,6 +332,10 @@ def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, bina
             # Crop the image
             if crop:
                 image = crop_image(image)
+
+            # Make the image negative
+            if negative:
+                image = cv2.bitwise_not(image)
             
             # New filename with 'Processed' prefix
             new_filename = 'Processed_' + filename
@@ -343,37 +347,37 @@ def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, bina
             cv2.imwrite(output_path, image)
 
 
-# In[23]:
+# In[15]:
 
 
-if __name__ == '__main__':
-    # Paths
-    source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages'
-    destination_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral'
+# if __name__ == '__main__':
+#     # Paths
+#     source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages'
+#     destination_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral'
     
-    # Process the directory
-    process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True)
+#     # Process the directory
+#     process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True)
 
 
-# In[21]:
+# In[16]:
 
 
-if __name__ == '__main__':
-    # Display the processed image
-    image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png'
-    display(Image(filename=image_path, width=700))  
+# if __name__ == '__main__':
+#     # Display the processed image
+#     image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png'
+#     display(Image(filename=image_path, width=700))  
 
 
 # The **threshold** value must be chosen carefully so as to leave all the algae, but not leave the clouds, land or other undesirable features. 
 # 
 # This is what the Binarized version looks like (for **cmap="binary"** and **threshold=180**), this should make it easier for the OF algorithms to track the algae. If we increase the threshold (which leaves in more algae), we get a lot of discrete algae spots, which is probably not going to be good for our algorithms.
 
-# In[19]:
+# In[17]:
 
 
-if __name__ == '__main__':
-    image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Binarized_algae_distribution_20220724_thresh_200.png'
-    display(Image(filename=image_path, width=700))  
+# if __name__ == '__main__':
+#     image_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Binarized_algae_distribution_20220724_thresh_200.png'
+#     display(Image(filename=image_path, width=700))  
 
 
 # This is what the binarized version looks like for **threshold=200**.
@@ -426,6 +430,206 @@ if __name__ == '__main__':
     # Paths
     source_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Viridis'
     destination_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis'
+    
+    # Process the directory (filter, binarize and crop the images)
+    process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
+
+
+# # Producing the Databases
+
+# ## ABI_Averages_Antilles
+# We're going to average and process all the ABI-GOES images and save them to the directory ABI_Averages on the hard drive "ballena". Running this block might take a while. To optimize we could try and parallelize this process using the GPU.
+
+# In[16]:
+
+
+if __name__ == '__main__':
+    start_date = '20221121'
+    end_date = '20221231'
+    directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
+    output_directory = '/media/yahia/ballena/ABI_Averages_Antilles' 
+    latitude_range = (12, 17)  
+    longitude_range = (-67, -60) 
+    
+    # Calculate the 1-day averages and save them
+    process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
+    
+    # Paths
+    source_directory = '/media/yahia/ballena/ABI_Averages_Antilles' 
+    destination_directory = '/media/yahia/ballena/ABI_Averages_Antilles_Processed' 
+    
+    # Process the directory (filter, binarize and crop the images)
+    process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
+
+
+# In[20]:
+
+
+# Binarized and bilateral images
+if __name__ == '__main__':
+    # Paths
+    source_directory = '/media/yahia/ballena/ABI/ABI_Averages_Antilles' 
+    destination_directory = '/media/yahia/ballena/ABI/ABI_Averages_Antilles_Binarized_Bilateral' 
+    
+    # Process the directory (filter, binarize and crop the images)
+    process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True)
+
+
+# In[24]:
+
+
+# Binarized and bilateral images (negative)
+if __name__ == '__main__':
+    # Paths
+    source_directory = '/media/yahia/ballena/ABI/ABI_Averages_Antilles' 
+    destination_directory = '/media/yahia/ballena/ABI/ABI_Averages_Antilles_Binarized_Bilateral_Negative' 
+    
+    # Process the directory (filter, binarize and crop the images)
+    process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True, negative=True)
+
+
+# ## MODIS_Images
+# The function **process_dates** we previously defined is only adapted to ABI-GOES images, we will need to write a function that does the same for MODIS and OLCI images. We will also need to do the same for **save_aggregate**.
+
+# In[28]:
+
+
+def save_image(file_path, lat_range=None, lon_range=None, color="viridis", vmax=0.1, output_filepath=None):
+    # Load the netCDF data
+    data = xr.open_dataset(file_path)
+    
+    # If ranges are specified, apply them to select the desired subset
+    if lat_range:
+        data = data.sel(latitude=slice(*lat_range))
+    if lon_range:
+        data = data.sel(longitude=slice(*lon_range))
+
+    # Determine the index data and labels based on instrument used
+    index_key = 'fai_anomaly' if "abi" in file_path else 'nfai_mean'
+    colorbar_label = 'Floating Algae Index Anomaly (FAI)' if "abi" in file_path else 'Normalized Floating Algae Index (NFAI)'
+    title = 'FAI anomaly across the selected region on ' if "abi" in file_path else 'NFAI across the selected region on '
+    
+    # Extract relevant data (NFAI or FAI anomaly)
+    index_data = data[index_key]
+
+    # Set non-positive values to a very small negative number, close to zero
+    index_data = xr.where(index_data > 0, index_data, -0.1)
+    
+    # Set up a plot with geographic projections
+    fig, ax = plt.subplots(figsize=(12, 10), subplot_kw={'projection': ccrs.PlateCarree()})
+    
+    # Customize the map with coastlines and features
+    ax.coastlines(resolution='10m', color='black')
+    ax.add_feature(cfeature.BORDERS, linestyle=':')
+    ax.add_feature(cfeature.LAND, facecolor='lightgray')
+
+    # Show gridlines only when visualizing interactively, not when saving the output
+    if output_filepath is None:
+        gl = ax.gridlines(draw_labels=True, linewidth=1, color='gray', alpha=0.5, linestyle='--')
+        gl.top_labels = False
+        gl.right_labels = False
+        cbar_kwargs = {'shrink': 0.35}
+    else:
+        cbar_kwargs = None
+
+    # Plot the data with the modified contrast
+    im = index_data.plot(ax=ax, x='longitude', y='latitude', transform=ccrs.PlateCarree(),
+                         cmap=color, add_colorbar=True, extend='both',
+                         vmin=-0.01, vmax=vmax,  # Here we set the scale to max out at 0.5
+                         cbar_kwargs={'shrink': 0.35})
+
+    # Set title and colorbar only when visualizing interactively
+    if output_filepath is None:
+        im.colorbar.set_label('Normalized Floating Algae Index (NFAI)')
+        plot_date = data.attrs.get('date', 'Unknown Date')
+        plt.title(f"Algae Distribution on {plot_date}")
+
+    if output_filepath:
+        plt.savefig(output_filepath)  
+        plt.close(fig)  
+    else:
+        plt.show()  
+
+
+# In[29]:
+
+
+def process_dates2(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis"):
+    # Convert the start and end dates from strings to datetime objects
+    current_date = datetime.strptime(start_date, '%Y%m%d')
+    end_date = datetime.strptime(end_date, '%Y%m%d')
+    
+    while current_date <= end_date:
+        # Format the current date as a string in 'YYYYMMDD' format
+        date_str = current_date.strftime('%Y%m%d')
+        
+        # Prepare the output file path for the current day's visualization
+        # Visualize the median algae distribution and save it using the provided visualization function
+        if "modis" in directory:
+            output_file_path = os.path.join(output_dir, f'MODIS_{date_str}.png')
+            file_path = directory + f"/cls-modis-aqua-global-lr_1d_{date_str}.nc"
+        elif "olci" in directory:
+            output_file_path = os.path.join(output_dir, f'OLCI_{date_str}.png')
+            file_path = directory + f"/cls-olci-s3-global-lr_1d_{date_str}.nc"
+
+        # Check if the file exists before proceeding
+        if not os.path.exists(file_path):
+            print(f"File not found for date: {date_str}, skipping...")
+        else:
+            try:
+                save_image(file_path, lat_range, lon_range, color=color, output_filepath=output_file_path)
+            except Exception as e:
+                print(f"Failed to process {file_path}: {e}")
+    
+        # Increment the current date by one day
+        current_date += timedelta(days=1)
+
+
+# Generating the MODIS images:
+
+# In[27]:
+
+
+if __name__ == '__main__':
+    start_date = '20201207'
+    end_date = '20221231'
+    directory = '/media/yahia/ballena/CLS/modis-aqua-global-lr' 
+    output_directory = '/media/yahia/ballena/MODIS_Antilles' 
+    latitude_range = (12, 17)  
+    longitude_range = (-67, -60) 
+    
+    # Calculate the 1-day averages and save them
+    process_dates2(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
+    
+    # Paths
+    source_directory = '/media/yahia/ballena/MODIS_Antilles' 
+    destination_directory = '/media/yahia/ballena/MODIS_Antilles_Processed' 
+    
+    # Process the directory (filter, binarize and crop the images)
+    process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
+
+
+# ## OLCI_Images
+
+# Generating the OLCI images:
+
+# In[30]:
+
+
+if __name__ == '__main__':
+    start_date = '20201207'
+    end_date = '20240122'
+    directory = '/media/yahia/ballena/CLS/olci-s3-global-lr' 
+    output_directory = '/media/yahia/ballena/OLCI_Antilles' 
+    latitude_range = (12, 17)  
+    longitude_range = (-67, -60) 
+    
+    # Calculate the 1-day averages and save them
+    process_dates2(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
+    
+    # Paths
+    source_directory = '/media/yahia/ballena/OLCI_Antilles' 
+    destination_directory = '/media/yahia/ballena/OLCI_Antilles_Processed' 
     
     # Process the directory (filter, binarize and crop the images)
     process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)

@@ -26,7 +26,7 @@ import cartopy.feature as cfeature
 # - color (optional): Colormap for the display, viridis by default. 
 # 
 
-# In[4]:
+# In[2]:
 
 
 def visualize(file_path, lat_range = None, lon_range = None, color = "viridis"):
@@ -101,13 +101,13 @@ if __name__ == '__main__':
 
 # ## ABI Visualization
 
-# In[5]:
+# In[6]:
 
 
 if __name__ == '__main__':
-    file_path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220722_10-50.nc"
+    file_path = "/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_20220928_10-00.nc"
     visualize(file_path)
-    visualize(file_path,(9,17),(-63,-60))
+    visualize(file_path,(12,17),(-67,-60))
 
 
 # ## Visualization Comments

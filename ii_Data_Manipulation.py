@@ -5,7 +5,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[3]:
+# In[1]:
 
 
 import xarray as xr
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 # ### Visualize_4: Setting a max for the scale
 # Note: vmax doesn't set a threshold for the image, it's just that the colors are saturated at vmax (For example if vmax is 0.01, values greater than 0.01 will still be shown but will have the same saturated color)
 
-# In[8]:
+# In[2]:
 
 
 def visualize_4(file_path, lat_range=None, lon_range=None, color="viridis", vmax=0.1):
@@ -119,7 +119,7 @@ def visualize_4(file_path, lat_range=None, lon_range=None, color="viridis", vmax
     plt.show()
 
 
-# In[9]:
+# In[6]:
 
 
 if __name__ == '__main__':

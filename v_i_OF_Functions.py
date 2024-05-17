@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[36]:
+# In[87]:
 
 
 import xarray as xr
@@ -16,14 +16,17 @@ import cv2
 import imageio
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+import matplotlib.animation as animation
 import numpy as np
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from datetime import datetime, timedelta
-from matplotlib import ticker
-from IPython.display import Image, display
+from IPython.display import Image, display, HTML
 from PIL import Image as PILImage
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import matplotlib as mpl
+# Increase the embed limit for animations
+mpl.rcParams['animation.embed_limit'] = 50  # Increase the limit to 50 MB
 
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
@@ -35,7 +38,7 @@ from iv_Image_Processing import collect_times, crop_image, save_aggregate, binar
 
 # ### Farneback_flow
 
-# In[41]:
+# In[5]:
 
 
 def farneback_flow(prev_img, next_img):
@@ -94,15 +97,27 @@ def farneback_flow(prev_img, next_img):
 
 # ### Lucas-Kanade
 
-# In[12]:
+# In[2]:
 
 
-def LK_flow(prev_img, next_img):
+def LK_flow(prev_img, next_img, max_corners=100, quality_level=0.3, min_distance=7, block_size=7, win_size=(15, 15), max_level=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03)):
     """
-    Returns:
-        new_points (np.ndarray): The points in the second image.
-        status (np.ndarray): Array of statuses for each point.
-        err (np.ndarray): Error for each point.
+    Computes optical flow using the Lucas-Kanade method.
+
+    :param prev_img: The previous image frame.
+    :param next_img: The next image frame.
+    :param max_corners: Maximum number of corners to detect.
+    :param quality_level: Quality level for corner detection.
+    :param min_distance: Minimum possible Euclidean distance between the returned corners.
+    :param block_size: Size of an average block for computing a derivative covariance matrix over each pixel neighborhood.
+    :param win_size: Size of the search window at each pyramid level.
+    :param max_level: 0-based maximal pyramid level number.
+    :param criteria: Criteria for termination of the iterative search algorithm.
+    :return: p0, p1, st, err
+        p0: Initial points in the previous image.
+        p1: Corresponding points in the next image.
+        st: Status array indicating whether the flow for the corresponding feature has been found.
+        err: Error for each point.
     """
     # Ensure images are grayscale
     if len(prev_img.shape) == 3:
@@ -110,34 +125,56 @@ def LK_flow(prev_img, next_img):
     if len(next_img.shape) == 3:
         next_img = cv2.cvtColor(next_img, cv2.COLOR_BGR2GRAY)
     
-    # Parameters for ShiTomasi corner detection
-    feature_params = {'maxCorners': 100,
-                      'qualityLevel': 0.3,
-                      'minDistance': 7,
-                      'blockSize': 7}
-
-    # Parameters for Lucas-Kanade optical flow
-    lk_params = {'winSize': (15, 15),
-                 'maxLevel': 2,
-                 'criteria': (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03)}
-
-    # Find good features to track (Shi-Tomasi corner detector)
-    p0 = cv2.goodFeaturesToTrack(prev_img, mask=None, **feature_params)
+    # Detect good features to track in the previous image
+    p0 = cv2.goodFeaturesToTrack(prev_img, maxCorners=max_corners, qualityLevel=quality_level, minDistance=min_distance, blockSize=block_size)
     
-    # Calculate optical flow (Lucas-Kanade)
-    if p0 is not None:
-        p1, st, err = cv2.calcOpticalFlowPyrLK(prev_img, next_img, p0, None, **lk_params)
-        return p0, p1, st, err
-    else:
-        return None, None, None, None
+    # Calculate optical flow between the two images
+    p1, st, err = cv2.calcOpticalFlowPyrLK(prev_img, next_img, p0, None, winSize=win_size, maxLevel=max_level, criteria=criteria)
+    
+    return p0, p1, st, err
+
+
+# ### ~Lucas-Kanade Flow~
+# This is a version that returns the flow like the Farneback method.
+
+# In[107]:
+
+
+def LK_flow_2(prev_img, next_img):
+    prev_gray = cv2.cvtColor(prev_img, cv2.COLOR_BGR2GRAY)
+    next_gray = cv2.cvtColor(next_img, cv2.COLOR_BGR2GRAY)
+    
+    # Parameters for lucas kanade optical flow
+    lk_params = dict(winSize=(15, 15),
+                     maxLevel=2,
+                     criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+
+    # Detecting good features to track
+    prev_points = cv2.goodFeaturesToTrack(prev_gray, maxCorners=1000, qualityLevel=0.01, minDistance=7, blockSize=7)
+    
+    # Calculate optical flow using Lucas-Kanade method
+    next_points, st, err = cv2.calcOpticalFlowPyrLK(prev_gray, next_gray, prev_points, None, **lk_params)
+    
+    # Select good points
+    good_prev = prev_points[st == 1]
+    good_next = next_points[st == 1]
+
+    # Create flow array
+    flow = np.zeros((prev_img.shape[0], prev_img.shape[1], 2), dtype=np.float32)
+    for pt1, pt2 in zip(good_prev, good_next):
+        x1, y1 = pt1.ravel()
+        x2, y2 = pt2.ravel()
+        flow[int(y1), int(x1)] = (x2 - x1, y2 - y1)
+
+    return flow
 
 
 # ## Useful Functions
 
 # ### compute_flow_components
-# Computes the magnitude and angle of the optical flow from the given flow vector components and then visualizes them 
+# Computes the magnitude and angle of the optical flow from the given flow vector components and then visualizes them.
 
-# In[25]:
+# In[17]:
 
 
 def compute_flow_components(flow):
@@ -148,7 +185,7 @@ def compute_flow_components(flow):
 # ### visualize_flow_components
 # Visualizes the magnitude and angle of optical flow using matplotlib.
 
-# In[27]:
+# In[18]:
 
 
 def visualize_flow_components(mag, ang):
@@ -169,15 +206,15 @@ def visualize_flow_components(mag, ang):
     plt.show()
 
 
-# ### plot_of_vectors
+# ### plot_flow_vectors
 # We can also visualize the motion field through vectors. This uses quiver from matplotlib.
 # 
 # Quiver produces nice looking arrows, but for our purposes, overlay_flow_vectors is probably better.
 
-# In[68]:
+# In[19]:
 
 
-def plot_of_vectors(flow, base_img, step=16, scale=1, display=True, color='r'):
+def plot_flow_vectors(flow, base_img, step=16, scale=1, display=True, color='r'):
     """
     Creates a plot of optical flow vectors over the base image and optionally displays it.
 
@@ -215,7 +252,7 @@ def plot_of_vectors(flow, base_img, step=16, scale=1, display=True, color='r'):
     return img_arr
 
 
-# In[63]:
+# In[20]:
 
 
 # if __name__ == '__main__':
@@ -229,7 +266,7 @@ def plot_of_vectors(flow, base_img, step=16, scale=1, display=True, color='r'):
 # ### overlay_flow_vectors
 # Overlays optical flow vectors on an image and returns the resulting image with vectors. Uses arrowedLine from OpenCV.
 
-# In[32]:
+# In[21]:
 
 
 def overlay_flow_vectors(flow, base_img, step=16, scale=1, color=(255, 0, 0)):
@@ -253,7 +290,7 @@ def overlay_flow_vectors(flow, base_img, step=16, scale=1, color=(255, 0, 0)):
 
 # ### overlay_flow_vectors_with_quiver
 
-# In[96]:
+# In[22]:
 
 
 def overlay_flow_vectors_with_quiver(flow, base_img, step=16, scale=1, color='r'):
@@ -288,7 +325,7 @@ def overlay_flow_vectors_with_quiver(flow, base_img, step=16, scale=1, color='r'
 # ### create_flow_gif
 # We can try to visualize the result using a GIF.
 
-# In[94]:
+# In[23]:
 
 
 def create_flow_gif(images, gif_path, fps=1, loop=10, quiver=False):
@@ -317,7 +354,7 @@ def create_flow_gif(images, gif_path, fps=1, loop=10, quiver=False):
     imageio.mimsave(gif_path, images_for_gif, fps=fps, loop=loop)
 
 
-# In[97]:
+# In[24]:
 
 
 # if __name__ == '__main__':
@@ -332,51 +369,59 @@ def create_flow_gif(images, gif_path, fps=1, loop=10, quiver=False):
 #     display(Image(filename=gif_path))
 
 
-# ### LK_vector_field
-# This function doesn't plot the image directly but returns it instead.
+# ### plot_LK_vectors
+# This function plots the flow vectors using the results of the LK algorithm.
 
-# In[15]:
+# In[3]:
 
 
-def LK_vector_field(p0, p1, status, prev_img):
+def plot_LK_vectors(p0, p1, st, base_img, display=True, color='r'):
     """
-    Creates an image with vectors plotted over the input image.
-    
-    Args:
-    - p0: Initial points in the first image.
-    - p1: Corresponding points in the second image.
-    - status: Status array from optical flow indicating which points are valid.
-    - prev_img: The first image on which vectors are drawn.
-    
-    Returns:
-    - An image array with vectors drawn.
+    Creates a plot of optical flow vectors over the base image and optionally displays it.
+
+    :param p0: Initial points in the previous image.
+    :param p1: Corresponding points in the next image.
+    :param st: Status array indicating whether the flow for the corresponding feature has been found.
+    :param base_img: Base image on which to plot the vectors.
+    :param display: Boolean indicating whether to display the plot.
+    :param color: Color of the flow vectors.
+    :return: An image array of the plot.
     """
-    # Create a figure to draw the vectors
+    # Select good points
+    good_new = p1[st == 1]
+    good_old = p0[st == 1]
+
+    # Create a plot
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.imshow(prev_img, cmap='gray')
-    for i, (new, old) in enumerate(zip(p1, p0)):
-        #if status[i]:
+    ax.imshow(base_img, cmap='gray')  # Ensure the image is displayed correctly
+
+    # Draw the tracks
+    for i, (new, old) in enumerate(zip(good_new, good_old)):
         a, b = new.ravel()
         c, d = old.ravel()
-        ax.arrow(c, d, (a - c), (b - d), color='red', head_width=2, head_length=3, linewidth=1.5, length_includes_head=True)
-    
+        ax.plot([c, a], [d, b], color=color, linewidth=1.5)
+        ax.scatter(a, b, color=color, s=5)
+
     ax.axis('off')
-    
-    # Save the plot to a buffer instead of showing it
+
+    # Optionally display the plot
+    if display:
+        plt.show()
+
+    # Convert the Matplotlib figure to a PIL Image and then to a NumPy array
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    plt.close(fig)
+    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    plt.close(fig)  # Close the figure to free memory
     buf.seek(0)
-    
-    # Load the image from the buffer
-    img_array = np.array(PILImage.open(buf))
-    
-    return img_array
+    img = PILImage.open(buf)
+    img_arr = np.array(img)
+
+    return img_arr
 
 
 # ### display_image_cv
 
-# In[16]:
+# In[26]:
 
 
 def display_image_cv(image_array):
@@ -390,7 +435,7 @@ def display_image_cv(image_array):
     cv2.destroyAllWindows()
 
 
-# In[17]:
+# In[27]:
 
 
 # if __name__ == '__main__':
@@ -404,7 +449,7 @@ def display_image_cv(image_array):
 
 # ### display_image_mpl
 
-# In[55]:
+# In[28]:
 
 
 def display_image_mpl(image_array, scale=1):
@@ -438,7 +483,7 @@ def display_image_mpl(image_array, scale=1):
 # ### superpose_images
 # This is a function that takes two images (preferably binarized for clarity) and superposes them on top of each other with different colors.
 
-# In[10]:
+# In[29]:
 
 
 def superpose_images(image1, image2, color1=(255, 0, 0), color2=(0, 255, 0)):
@@ -476,7 +521,7 @@ def superpose_images(image1, image2, color1=(255, 0, 0), color2=(0, 255, 0)):
     return colored_image
 
 
-# In[19]:
+# In[30]:
 
 
 # if __name__ == '__main__':
@@ -486,7 +531,7 @@ def superpose_images(image1, image2, color1=(255, 0, 0), color2=(0, 255, 0)):
 #     display_image_cv(superposed)
 
 
-# In[ ]:
+# In[31]:
 
 
 # if __name__ == '__main__':
@@ -496,7 +541,7 @@ def superpose_images(image1, image2, color1=(255, 0, 0), color2=(0, 255, 0)):
 
 # ### warp_image
 
-# In[109]:
+# In[68]:
 
 
 def warp_image(img, flow):
@@ -522,7 +567,7 @@ def warp_image(img, flow):
     return warped_img
 
 
-# In[110]:
+# In[69]:
 
 
 if __name__ == '__main__':
@@ -532,8 +577,107 @@ if __name__ == '__main__':
     #plot_of_vectors(flow, prev_img, step=16, scale=1.25)
     warped = warp_image(prev_img, flow)
     display_image_mpl(warped)
-    display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png", width =750))
-    display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
+    # display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png", width =750))
+    # display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
+
+
+# ### warp_image_2
+
+# In[70]:
+
+
+def warp_image_2(img, flow, alpha):
+    h, w = flow.shape[:2]
+    flow = flow * alpha
+    
+    # Create a grid of coordinates and apply the flow
+    coords = np.meshgrid(np.arange(w), np.arange(h))
+    coords = np.array(coords).astype(np.float32)
+    coords = np.stack(coords, axis=-1)
+    coords += flow
+    
+    # Warp the image using the flow
+    map_x = coords[..., 0].astype(np.float32)
+    map_y = coords[..., 1].astype(np.float32)
+    warped_img = cv2.remap(img, map_x, map_y, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+    return warped_img
+
+
+# ### interpolate_images
+# We're now going to try and visualize the movement of the algae from one frame to the next by interpolating between the frames. We're first going to try a linear interpolation method that simply divides the flow into **num_interpolations** fields. This function then applies a fraction of the flow to the first image and (the opposite of that flow) to the second image then blends them together.
+
+# In[99]:
+
+
+def interpolate_images(prev_img, next_img, flow, num_interpolations=30):
+    interpolated_images = []
+    for i in range(num_interpolations + 1):
+        alpha = i / num_interpolations
+        warped_prev = warp_image_2(prev_img, flow, alpha)
+        warped_next = warp_image_2(next_img, -flow, 1 - alpha)
+        blended_img = cv2.addWeighted(warped_prev, 1 - alpha, warped_next, alpha, 0)
+        interpolated_images.append(blended_img)
+    return interpolated_images
+
+
+# ### visualize_movement
+
+# In[1]:
+
+
+def visualize_movement(interpolated_images, fps=15):
+    interval = 1000 / fps  # Interval in milliseconds
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    im = ax.imshow(interpolated_images[0])
+    
+    def update_frame(num):
+        im.set_array(interpolated_images[num])
+        return im,
+    
+    ani = animation.FuncAnimation(fig, update_frame, frames=len(interpolated_images), blit=True, interval=interval)
+    
+    # Display the animation in the notebook
+    display(HTML(ani.to_jshtml()))
+    plt.close(fig)
+
+
+# In[103]:
+
+
+# if __name__ == '__main__':
+#     # Binarized
+#     prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+#     next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+#     flow = farneback_flow(prev_img, next_img)
+#     interpolated_images = interpolate_images(prev_img, next_img, flow, num_interpolations=60)
+#     visualize_movement(interpolated_images, fps=15)
+#     #display(Image(filename='interpolated_images.gif'))
+
+
+# In[108]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
+    flow = farneback_flow(prev_img, next_img)
+    interpolated_images = interpolate_images(prev_img, next_img, flow, num_interpolations=60)
+    visualize_movement(interpolated_images, fps=10)
+
+
+# In[109]:
+
+
+# Lucas-Kanade
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png")
+    flow = LK_flow_2(prev_img, next_img)
+    interpolated_images = interpolate_images(prev_img, next_img, flow, num_interpolations=60)
+    visualize_movement(interpolated_images, fps=10)
 
 
 # ## Error Quantification
