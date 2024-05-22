@@ -7,7 +7,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[2]:
+# In[ ]:
 
 
 #%matplotlib widget
@@ -29,7 +29,7 @@ from ii_Data_Manipulation import visualize_4
 # ## Time List Generator
 # First, we should write a function that generates a lost of the times in the time intervals we need to make the importation of data easier. 
 
-# In[3]:
+# In[ ]:
 
 
 def time_list(start_time, end_time, interval):
@@ -58,7 +58,7 @@ def time_list(start_time, end_time, interval):
 # ## Function to visualize aggregate data 
 # We should first write a function **(very similar to visualize_5, maybe we should make it use visualize_5)** to visualize the aggregate motion of the algae, this function would take the aggregate_data we're going to calculate as argument instead of the path to the file.
 
-# In[4]:
+# In[ ]:
 
 
 def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0, output_filepath=None, filter_clouds=True):
@@ -106,7 +106,7 @@ def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="v
 # - Note: **This is only adapted to ABI-GOES for the moment.**
 # - **We can and should optimize this by making it calculate the aggregate on a selected region instead of the whole image.**
 
-# In[5]:
+# In[ ]:
 
 
 def calculate_mean(time_list, lat_range=None, lon_range=None, threshold=0):
@@ -153,7 +153,7 @@ def calculate_mean(time_list, lat_range=None, lon_range=None, threshold=0):
     return average_algae_distribution
 
 
-# In[36]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
 # ### Calculating Median
 
-# In[6]:
+# In[ ]:
 
 
 def calculate_median(time_list, lat_range=None, lon_range=None, threshold=0):
@@ -242,7 +242,7 @@ def calculate_median(time_list, lat_range=None, lon_range=None, threshold=0):
     return median_algae_distribution
 
 
-# In[7]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -250,19 +250,19 @@ if __name__ == '__main__':
     times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
     
     # Calculating the median data for this time period
-    median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range=(-67, -60))
+    median_algae_distribution = calculate_median(times,lat_range=(14, 15), lon_range= (-66, -65))
     
     # Calculating the aggregate data for this time period
     average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
     
     #Visualizing the result and comparing it to the mean 
-    visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+    visualize_aggregate(median_algae_distribution, (14, 15), (-66, -65), color="viridis", vmax=0.001, threshold=0)
     visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
 # Although the difference is not very big, it is non negligible and we can see that median function produces rafts that are a bit thinner, which is preferable.
 
-# In[9]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
-# In[11]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -301,7 +301,7 @@ if __name__ == '__main__':
 # ### Calculating Percentiles
 # This is a sort of generalization of the last 3 functions, (setting the percentile to 50 will return the median, setting it to 100 the max, and to 0 the min).
 
-# In[12]:
+# In[ ]:
 
 
 def calculate_percentile(time_list, lat_range=None, lon_range=None, threshold=0, percentile=50):
@@ -373,7 +373,7 @@ if __name__ == '__main__':
 # # Averaging ABI-GOES images for an hour
 # An average over a day for ABI-GOES images isn't really the point of our project. We want to track the movement of sargassum over 1-hour periods (even less ideally).
 
-# In[7]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -394,7 +394,7 @@ if __name__ == '__main__':
 # 
 # But how could we quantify whether the solution we settle on is good enough or not? Maybe we could compare the Algae Ratio **$Ar= \frac{\text{number of pixels with algae}}{\text{number of pixels with algae in mean image}} $** to an Aglae Ratio Threshold **Art** where we'd consider an image to be satisfactory if **$Ar > Art$**.
 
-# In[7]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -413,7 +413,7 @@ if __name__ == '__main__':
 
 # We should come back to this, but for now we're going to work on 1-day ABI-GOES averages.
 
-# In[8]:
+# In[ ]:
 
 
 if __name__ == '__main__':

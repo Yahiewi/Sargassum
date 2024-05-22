@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -33,7 +33,7 @@ from iii_GOES_average import time_list, visualize_aggregate, calculate_median
 
 # ### Time Collector
 
-# In[2]:
+# In[ ]:
 
 
 def collect_times(date, directory):
@@ -49,7 +49,7 @@ def collect_times(date, directory):
 # ### Saving a Figure
 # Because we've encountered bugs and stack overflow when we tried to modify the function of notebook 3 by adding an optional parameter (**output_filepath**=None), which if specified saves the figure instead of showing it (and removes the legend), we've decided instead to write a new function here **save_aggregate** that can also display the image.
 
-# In[3]:
+# In[ ]:
 
 
 def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0.0001, output_filepath=None, filter_clouds=True):
@@ -104,7 +104,7 @@ def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridi
 # ### Cropping Images
 # Let's write a function to crop images so as to remove the white space from the figure.
 
-# In[4]:
+# In[ ]:
 
 
 def crop_image(image):
@@ -137,7 +137,7 @@ def crop_image(image):
 
 # ### Producing the Mini Database
 
-# In[5]:
+# In[ ]:
 
 
 def process_dates(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis"):
@@ -174,7 +174,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
         current_date += timedelta(days=1)
 
 
-# In[6]:
+# In[ ]:
 
 
 # start_date = '20220724'
@@ -188,7 +188,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
 # process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="binary")
 
 
-# In[7]:
+# In[ ]:
 
 
 # #Displaying the result
@@ -203,7 +203,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
 # #### Binarizing the Images
 # Binarizing the images (indicating the presence of algae by absolute black and the rest by white) might be beneficial for our Optical Flow algorithms.
 
-# In[8]:
+# In[ ]:
 
 
 def binarize_image(image, threshold):
@@ -216,7 +216,7 @@ def binarize_image(image, threshold):
 
 # #### Bilateral Filter
 
-# In[9]:
+# In[ ]:
 
 
 def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
@@ -242,7 +242,7 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
     return bilateral
 
 
-# In[10]:
+# In[ ]:
 
 
 # image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages/algae_distribution_20220724.png"
@@ -259,7 +259,7 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
 
 # ##### Bilateral then Binarization
 
-# In[11]:
+# In[ ]:
 
 
 # image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages_Bilateral/Bilateral_algae_distribution_20220724.png"
@@ -276,7 +276,7 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
 
 # #### ~Edge Detection~
 
-# In[12]:
+# In[ ]:
 
 
 def edges(image_path):
@@ -287,7 +287,7 @@ def edges(image_path):
     return edges
 
 
-# In[13]:
+# In[ ]:
 
 
 # image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages_Binarized_Median/Binarized_Median_algae_distribution_20220724.png"
@@ -300,13 +300,41 @@ def edges(image_path):
 
 # Here we've applied the edge detection algorithm to the binarized filtered image. This algorithm clearly delimits the edges of the algae rafts which may be useful later on.
 
+# #### ~equalize_image~
+# This is an optional image processing step which should increase contrast in the image.
+
+# In[ ]:
+
+
+def equalize_image(image):
+    """
+    Enhances contrast by applying histogram equalization.
+    
+    :param image: The input image.
+    :return: The preprocessed image.
+    """
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    equalized = cv2.equalizeHist(gray)
+    return equalized
+
+
+# In[ ]:
+
+
+# if __name__ == "__main__":
+#     img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
+#     img_eq = equalize_image(img)
+#     display_image_mpl(img)
+#     display_image_mpl(img_eq)
+
+
 # #### Conclusion
 # After trying out various combinations, it seems the best image we have obtained so far is by **applying a bilateral filter and then binarizing the image** (median filter is still an option, although bilateral filters are better for preserving the edges).
 
 # ### Saving Images
 # This function takes as input images and applies a certain function (for now bilateral_function then binarize_image but we could generalize this to work with other functions) to them and then saves them in the provided directory.
 
-# In[23]:
+# In[ ]:
 
 
 def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, binarize=False, crop=True, negative=False):
@@ -347,7 +375,7 @@ def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, bina
             cv2.imwrite(output_path, image)
 
 
-# In[15]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -359,7 +387,7 @@ def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, bina
 #     process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True)
 
 
-# In[16]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -372,7 +400,7 @@ def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, bina
 # 
 # This is what the Binarized version looks like (for **cmap="binary"** and **threshold=180**), this should make it easier for the OF algorithms to track the algae. If we increase the threshold (which leaves in more algae), we get a lot of discrete algae spots, which is probably not going to be good for our algorithms.
 
-# In[17]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -388,7 +416,7 @@ def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, bina
 # 
 # After a few tries, we've found the week of 2022/07/18 - 2022/07/24 to be good, with 22, 23 and 24 having particularly clear images.
 
-# In[17]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -413,7 +441,7 @@ if __name__ == '__main__':
 # ## Producing Viridis Images
 # After all the image processing we did, the algorithm may not be able to track individual pixels any more, so raw viridis images may actually be better than the images we processed.
 
-# In[30]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -440,7 +468,7 @@ if __name__ == '__main__':
 # ## ABI_Averages_Antilles
 # We're going to average and process all the ABI-GOES images and save them to the directory ABI_Averages on the hard drive "ballena". Running this block might take a while. To optimize we could try and parallelize this process using the GPU.
 
-# In[16]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -462,7 +490,7 @@ if __name__ == '__main__':
     process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
 
 
-# In[20]:
+# In[ ]:
 
 
 # Binarized and bilateral images
@@ -475,7 +503,7 @@ if __name__ == '__main__':
     process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True)
 
 
-# In[24]:
+# In[ ]:
 
 
 # Binarized and bilateral images (negative)
@@ -491,7 +519,7 @@ if __name__ == '__main__':
 # ## MODIS_Images
 # The function **process_dates** we previously defined is only adapted to ABI-GOES images, we will need to write a function that does the same for MODIS and OLCI images. We will also need to do the same for **save_aggregate**.
 
-# In[28]:
+# In[ ]:
 
 
 def save_image(file_path, lat_range=None, lon_range=None, color="viridis", vmax=0.1, output_filepath=None):
@@ -551,10 +579,10 @@ def save_image(file_path, lat_range=None, lon_range=None, color="viridis", vmax=
         plt.show()  
 
 
-# In[29]:
+# In[ ]:
 
 
-def process_dates2(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis"):
+def process_dates_2(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis"):
     # Convert the start and end dates from strings to datetime objects
     current_date = datetime.strptime(start_date, '%Y%m%d')
     end_date = datetime.strptime(end_date, '%Y%m%d')
@@ -587,7 +615,7 @@ def process_dates2(start_date, end_date, directory, output_dir, lat_range=None, 
 
 # Generating the MODIS images:
 
-# In[27]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -599,7 +627,7 @@ if __name__ == '__main__':
     longitude_range = (-67, -60) 
     
     # Calculate the 1-day averages and save them
-    process_dates2(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
+    process_dates_2(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
     
     # Paths
     source_directory = '/media/yahia/ballena/MODIS_Antilles' 
@@ -613,7 +641,7 @@ if __name__ == '__main__':
 
 # Generating the OLCI images:
 
-# In[30]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -625,7 +653,7 @@ if __name__ == '__main__':
     longitude_range = (-67, -60) 
     
     # Calculate the 1-day averages and save them
-    process_dates2(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
+    process_dates_2(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="viridis")
     
     # Paths
     source_directory = '/media/yahia/ballena/OLCI_Antilles' 

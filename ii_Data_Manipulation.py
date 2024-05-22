@@ -5,7 +5,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -27,7 +27,7 @@ from i_Getting_Started import visualize
 # ## A bit of statistics
 # Here we plot the histograms **(on a logarithmic scale)** of the index values to see how the values are distributed for the 3 instrument images.
 
-# In[2]:
+# In[ ]:
 
 
 def histogram(file_path):
@@ -49,7 +49,7 @@ def histogram(file_path):
     plt.show()
 
 
-# In[3]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 # ### Visualize_4: Setting a max for the scale
 # Note: vmax doesn't set a threshold for the image, it's just that the colors are saturated at vmax (For example if vmax is 0.01, values greater than 0.01 will still be shown but will have the same saturated color)
 
-# In[2]:
+# In[ ]:
 
 
 def visualize_4(file_path, lat_range=None, lon_range=None, color="viridis", vmax=0.1):
@@ -119,7 +119,7 @@ def visualize_4(file_path, lat_range=None, lon_range=None, color="viridis", vmax
     plt.show()
 
 
-# In[6]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
 # ### Trying these functions on ABI-GOES images
 
-# In[10]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
 # ### Visualize_5: Fixing a positive threshold
 
-# In[15]:
+# In[ ]:
 
 
 def visualize_5(file_path, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0):
@@ -205,7 +205,7 @@ def visualize_5(file_path, lat_range=None, lon_range=None, color="viridis", vmax
     plt.show()
 
 
-# In[16]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -229,7 +229,7 @@ if __name__ == '__main__':
 # ### Time List Generator
 # First, we should write a function that generates a lost of the times in the time intervals we need to make the importation of data easier. 
 
-# In[25]:
+# In[ ]:
 
 
 def time_list(start_time, end_time, interval):
@@ -259,7 +259,7 @@ def time_list(start_time, end_time, interval):
 # We should also write a function to calculate the aggregate (mean) data on the time frame we want using the previous function time_list. 
 # Note: **This is only adapted to ABI-GOES for the moment.**
 
-# In[28]:
+# In[ ]:
 
 
 def calculate_aggregate_data(time_list, threshold=0):

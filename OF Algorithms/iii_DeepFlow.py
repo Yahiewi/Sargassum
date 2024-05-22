@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -24,6 +24,8 @@ from matplotlib import ticker
 from IPython.display import Image, display
 from PIL import Image as PILImage
 
+# Append the parent directory (Sargassum) to the system path
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
 from iii_GOES_average import time_list, visualize_aggregate, calculate_median
@@ -33,7 +35,7 @@ from v_i_OF_Functions import *
 
 # ## DeepFlow Algorithm
 
-# In[2]:
+# In[ ]:
 
 
 def deepflow(prev_img, next_img):
@@ -51,7 +53,7 @@ def deepflow(prev_img, next_img):
 
 # ### 23/07 - 24/07
 
-# In[3]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -72,13 +74,15 @@ if __name__ == '__main__':
     flow = deepflow(prev_img, next_img)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
     # GIF
-    interpolated_images = interpolate_images(prev_img, next_img, flow, num_interpolations=60)
+    # THIS SHOULD BE FIXED: The GIF function we wrote gives an inverted GIF so we have to invert next_img and prev_img and then reverse the interpolated_images list.
+    interpolated_images = interpolate_images(next_img, prev_img, flow, num_interpolations=60)
+    interpolated_images.reverse()
     visualize_movement(interpolated_images, fps=30)
 
 
 # ### 05/18 - 05/19
 
-# In[4]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -107,7 +111,7 @@ if __name__ == '__main__':
 
 # ### 05/21 - 05/22
 
-# In[9]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -121,11 +125,16 @@ if __name__ == '__main__':
     next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220522.png")
     flow = deepflow(prev_img, next_img)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    # GIF
+    # THIS SHOULD BE FIXED: The GIF function we wrote gives an inverted GIF so we have to invert next_img and prev_img and then reverse the interpolated_images list.
+    interpolated_images = interpolate_images(next_img, prev_img, flow, num_interpolations=60)
+    interpolated_images.reverse()
+    visualize_movement(interpolated_images, fps=30)
 
 
 # ### 07/03 - 07/04
 
-# In[10]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -134,16 +143,26 @@ if __name__ == '__main__':
     next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Binarized_Bilateral_Negative/Processed_algae_distribution_20220704.png")
     flow = deepflow(prev_img, next_img)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    # GIF
+    # THIS SHOULD BE FIXED: The GIF function we wrote gives an inverted GIF so we have to invert next_img and prev_img and then reverse the interpolated_images list.
+    interpolated_images = interpolate_images(next_img, prev_img, flow, num_interpolations=60)
+    interpolated_images.reverse()
+    visualize_movement(interpolated_images, fps=30)
     # Viridis
     prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220703.png")
     next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220704.png")
     flow = deepflow(prev_img, next_img)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    # GIF
+    # THIS SHOULD BE FIXED: The GIF function we wrote gives an inverted GIF so we have to invert next_img and prev_img and then reverse the interpolated_images list.
+    interpolated_images = interpolate_images(next_img, prev_img, flow, num_interpolations=60)
+    interpolated_images.reverse()
+    visualize_movement(interpolated_images, fps=30)
 
 
 # ### 07/13 - 07/14
 
-# In[11]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -157,6 +176,34 @@ if __name__ == '__main__':
     next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220714.png")
     flow = deepflow(prev_img, next_img)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+
+
+# ## Zoom
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Processed/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Processed/Processed_algae_distribution_20220724.png")
+    flow = deepflow(prev_img, next_img)
+    plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    # GIF
+    # THIS SHOULD BE FIXED: The GIF function we wrote gives an inverted GIF so we have to invert next_img and prev_img and then reverse the interpolated_images list.
+    interpolated_images = interpolate_images(next_img, prev_img, flow, num_interpolations=60)
+    interpolated_images.reverse()
+    visualize_movement(interpolated_images, fps=30)
+    # Binarized
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Binarized_Bilateral/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Binarized_Bilateral/Processed_algae_distribution_20220724.png")
+    flow = deepflow(prev_img, next_img)
+    plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    # GIF
+    # THIS SHOULD BE FIXED: The GIF function we wrote gives an inverted GIF so we have to invert next_img and prev_img and then reverse the interpolated_images list.
+    interpolated_images = interpolate_images(next_img, prev_img, flow, num_interpolations=60)
+    interpolated_images.reverse()
+    visualize_movement(interpolated_images, fps=30)
 
 
 # In[ ]:

@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -35,7 +35,7 @@ from v_i_OF_Functions import *
 
 # ### Visualizing the Flow
 
-# In[2]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
 # We can also visualize the motion field through vectors.
 
-# In[3]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 # ### GIF
 # We can try to visualize the result using a GIF.
 
-# In[4]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 # The binarized image doesn't seem to be adapted for our algorithm, so we'll try to apply our algorithm on Viridis images.
 
-# In[5]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220724.png", width =750))
 
 
-# In[6]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -113,7 +113,7 @@ if __name__ == '__main__':
 
 # ### Trying Lucas-Kanade
 
-# In[8]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -141,7 +141,7 @@ if __name__ == '__main__':
 
 # ### OpenCV Image Display
 
-# In[9]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 # ### Image Superposition
 # This is a function that takes two images (preferably binarized for clarity) and superposes them on top of each other with different colors.
 
-# In[10]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     display_image_cv(superposed)
 
 
-# In[13]:
+# In[ ]:
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -27,6 +27,9 @@ from matplotlib import ticker
 from IPython.display import Image, display
 from PIL import Image as PILImage
 
+
+# Append the parent directory (Sargassum) to the system path
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
 from iii_GOES_average import time_list, visualize_aggregate, calculate_median
@@ -37,7 +40,7 @@ from v_i_OF_Functions import *
 # ## Lucas-Kanade
 # Like the notebook Farneback, even though this function is already defined in *v_i_OF_Functions* we redefine it here for convenience (so we can change it without having to change it in the other notebook, then reimporting).
 
-# In[2]:
+# In[ ]:
 
 
 def LK(prev_img, next_img, max_corners=100, quality_level=0.3, min_distance=7, block_size=7, win_size=(15, 15), max_level=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03)):
@@ -76,16 +79,88 @@ def LK(prev_img, next_img, max_corners=100, quality_level=0.3, min_distance=7, b
 
 # ### 23/07 - 24/07
 
-# In[5]:
+# In[ ]:
 
 
 if __name__ == '__main__':
     prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
     next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-    # Compute optical flow using Lucas-Kanade method
     p0, p1, st, err = LK(prev_img, next_img)
-    
-    # Plot flow vectors on the base image
     flow_plot = plot_LK_vectors(p0, p1, st, prev_img, display=True, color='r')
-    #display_image_mpl(flow_plot)
+
+
+# ### 05/18 - 05/19
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220518.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220519.png")
+    p0, p1, st, err = LK(prev_img, next_img)
+    flow_plot = plot_LK_vectors(p0, p1, st, prev_img, display=True, color='r')
+
+
+# ### 05/21 - 05/22
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220521.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220522.png")
+    p0, p1, st, err = LK(prev_img, next_img)
+    flow_plot = plot_LK_vectors(p0, p1, st, prev_img, display=True, color='r')
+
+
+# ### 07/03 - 07/04
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220703.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220704.png")
+    p0, p1, st, err = LK(prev_img, next_img)
+    flow_plot = plot_LK_vectors(p0, p1, st, prev_img, display=True, color='r')
+
+
+# ### 07/13 - 07/14
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220713.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220714.png")
+    p0, p1, st, err = LK(prev_img, next_img)
+    flow_plot = plot_LK_vectors(p0, p1, st, prev_img, display=True, color='r')
+
+
+# ## Zoom
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Processed/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Processed/Processed_algae_distribution_20220724.png")
+    p0, p1, st, err = LK(prev_img, next_img)
+    flow_plot = plot_LK_vectors(p0, p1, st, prev_img, display=True, color='r')
+    # Binarized
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Binarized_Bilateral/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Binarized_Bilateral/Processed_algae_distribution_20220724.png")
+    p0, p1, st, err = LK(prev_img, next_img)
+    flow_plot = plot_LK_vectors(p0, p1, st, prev_img, display=True, color='r')
+
+
+# In[ ]:
+
+
+
 

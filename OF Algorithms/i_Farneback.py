@@ -9,7 +9,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[2]:
+# In[ ]:
 
 
 import xarray as xr
@@ -27,6 +27,9 @@ from matplotlib import ticker
 from IPython.display import Image, display
 from PIL import Image as PILImage
 
+
+# Append the parent directory (Sargassum) to the system path
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
 from iii_GOES_average import time_list, visualize_aggregate, calculate_median
@@ -36,7 +39,7 @@ from v_i_OF_Functions import *
 
 # ## Farneback_flow
 
-# In[3]:
+# In[ ]:
 
 
 def farneback(prev_img, next_img, flow = None, pyr_scale=0.5, levels=3, winsize=15, 
@@ -94,7 +97,7 @@ def farneback(prev_img, next_img, flow = None, pyr_scale=0.5, levels=3, winsize=
     return flow
 
 
-# In[3]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -105,7 +108,7 @@ if __name__ == '__main__':
     #display(Image(filename="/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png", width =750))
 
 
-# In[5]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -123,7 +126,7 @@ if __name__ == '__main__':
 # 
 # For large displacements, smaller values should be better.
 
-# In[37]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -148,7 +151,7 @@ if __name__ == '__main__':
 # 
 # For large displacements, bigger values should be better.
 
-# In[58]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -174,7 +177,7 @@ if __name__ == '__main__':
 # 
 # For large displacements, bigger values should be better. 
 
-# In[72]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -199,7 +202,7 @@ if __name__ == '__main__':
 # ### iterations
 # Number of iterations the algorithm does at each pyramid level. 
 
-# In[100]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -225,7 +228,7 @@ if __name__ == '__main__':
 # ### poly_n
 # Size of the pixel neighborhood used to find polynomial expansion in each pixel; larger values mean that the image will be approximated with smoother surfaces, yielding more robust algorithm and more blurred motion field, typically poly_n =5 or 7. 
 
-# In[112]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -252,7 +255,7 @@ if __name__ == '__main__':
 # ### poly_sigma
 # Standard deviation of the Gaussian that is used to smooth derivatives used as a basis for the polynomial expansion; for poly_n=5, you can set poly_sigma=1.1, for poly_n=7, a good value would be poly_sigma=1.5.
 
-# In[133]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -282,7 +285,7 @@ if __name__ == '__main__':
 # - OPTFLOW_USE_INITIAL_FLOW uses the input flow as an initial flow approximation.
 # - OPTFLOW_FARNEBACK_GAUSSIAN uses the Gaussian filter instead of a box filter of the same size for optical flow estimation; usually, this option gives z more accurate flow than with a box filter, at the cost of lower speed; normally, winsize for a Gaussian window should be set to a larger value to achieve the same level of robustness.
 
-# In[14]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -311,7 +314,7 @@ if __name__ == '__main__':
 # ### flow
 # We can use a flow field obtained from another algorithm (or from this same algorithm) as an initial guess for this algorithm.
 
-# In[24]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -349,10 +352,20 @@ if __name__ == '__main__':
 
 # ## Conclusion
 # It is hard, if not impossible, to find the ideal parameters for every image we have in our database. For some successive images, the motion would be too large for the parameters and for others it will be too small. So the purpose of this notebook was not to find the ideal parameters, but rather to understand the influence of each of these parameters on the result.
+# 
+# Retained parameters are:   
+# - pyr_scale=0.1
+# - levels=3
+# - winsize=15
+# - iterations=4
+# - poly_n=5
+# - poly_sigma=1.2
+
+# ## Other Dates
 
 # ### 23/07 - 24/07
 
-# In[4]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -377,52 +390,76 @@ if __name__ == '__main__':
 
 # ### 05/18 - 05/19
 
-# In[5]:
+# In[ ]:
 
 
 if __name__ == '__main__':
     # Viridis
-    prev_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220518.png")
-    next_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220519.png")
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220518.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220519.png")
     flow = farneback(prev_img, next_img, pyr_scale=pyr_scale, levels=levels, winsize=winsize, iterations=iterations, poly_n=poly_n, poly_sigma=poly_sigma)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
 
 
 # ### 05/21 - 05/22
 
-# In[6]:
+# In[ ]:
 
 
 if __name__ == '__main__':
     # Viridis
-    prev_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220521.png")
-    next_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220522.png")
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220521.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220522.png")
     flow = farneback(prev_img, next_img, pyr_scale=pyr_scale, levels=levels, winsize=winsize, iterations=iterations, poly_n=poly_n, poly_sigma=poly_sigma)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
 
 
 # ### 07/03 - 07/04
 
-# In[7]:
+# In[ ]:
 
 
 if __name__ == '__main__':
     # Viridis
-    prev_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220703.png")
-    next_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220704.png")
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220703.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220704.png")
     flow = farneback(prev_img, next_img, pyr_scale=pyr_scale, levels=levels, winsize=winsize, iterations=iterations, poly_n=poly_n, poly_sigma=poly_sigma)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
 
 
 # ### 07/13 - 07/14
 
-# In[8]:
+# In[ ]:
 
 
 if __name__ == '__main__':
     # Viridis
-    prev_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220713.png")
-    next_img = cv2.imread("/media/yahia/ballena/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220714.png")
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220713.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/ABI_Averages_Antilles_Processed/Processed_algae_distribution_20220714.png")
     flow = farneback(prev_img, next_img, pyr_scale=pyr_scale, levels=levels, winsize=winsize, iterations=iterations, poly_n=poly_n, poly_sigma=poly_sigma)
     plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+
+
+# ## Zoom
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Viridis
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Processed/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Processed/Processed_algae_distribution_20220724.png")
+    flow = farneback(prev_img, next_img, pyr_scale=0.1, levels=3, winsize=15, iterations=4, poly_n=5, poly_sigma=1.2)
+    plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+    # Binarized
+    prev_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Binarized_Bilateral/Processed_algae_distribution_20220723.png")
+    next_img = cv2.imread("/media/yahia/ballena/ABI/Spiral/ABI_Averages_Spiral_Binarized_Bilateral/Processed_algae_distribution_20220724.png")
+    flow = farneback(prev_img, next_img, pyr_scale=0.1, levels=3, winsize=15, iterations=4, poly_n=5, poly_sigma=1.2)
+    plot_flow_vectors(flow, prev_img, step=16, scale=1.25)
+
+
+# In[ ]:
+
+
+
 

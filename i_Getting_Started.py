@@ -9,7 +9,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -26,7 +26,7 @@ import cartopy.feature as cfeature
 # - color (optional): Colormap for the display, viridis by default. 
 # 
 
-# In[2]:
+# In[ ]:
 
 
 def visualize(file_path, lat_range = None, lon_range = None, color = "viridis"):
@@ -78,7 +78,7 @@ def visualize(file_path, lat_range = None, lon_range = None, color = "viridis"):
 
 # ## MODIS Visualization
 
-# In[12]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
 # ## OLCI Visualization
 
-# In[5]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 
 # ## ABI Visualization
 
-# In[6]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -137,7 +137,7 @@ if __name__ == '__main__':
 # We're going to study an area in the **Antilles** to the west of Dominica and Martinique because of the high density of sargassum algae there. 
 # The selected date is **20/07/2022** for the same reasons and the instrument used is **ABI-GOES**.
 
-# In[7]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -155,7 +155,7 @@ if __name__ == '__main__':
 # 
 # We're going to study the same area, but since OLCI's temporal resolution is only 1-day, we can't study the dynamics on on a period of a day, so we'll try doing it for a week, starting from **20/07/2022** until **27/07/2022**.
 
-# In[8]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -173,7 +173,7 @@ if __name__ == '__main__':
 # 
 # Always in the same area, this time we're going to study the MODIS images on the same 1-week interval which should produce something similar to OLCI with less accuracy.
 
-# In[9]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -189,7 +189,7 @@ if __name__ == '__main__':
 # - One idea would be to **sync** the images from the satellites to the same time, then superpose them after only leaving the algae (by either using an adapted colormap or using an index threshold) so that way we can have more dense aggregations to track using the algorithms we will write.
 # - Syncing these images however is not an easy thing to do. I don't yet know when the images from OLCI and MODIS are taken **(I should look this up)**. An idea for syncing the images would be to fix a wisely chosen time (that's ideally already synced for two of the satellites) and use drift models to try to estimate the position of the algae at that time. 
 
-# In[10]:
+# In[ ]:
 
 
 if __name__ == '__main__':

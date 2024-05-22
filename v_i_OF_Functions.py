@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[87]:
+# In[ ]:
 
 
 import xarray as xr
@@ -38,7 +38,7 @@ from iv_Image_Processing import collect_times, crop_image, save_aggregate, binar
 
 # ### Farneback_flow
 
-# In[5]:
+# In[ ]:
 
 
 def farneback_flow(prev_img, next_img):
@@ -97,7 +97,7 @@ def farneback_flow(prev_img, next_img):
 
 # ### Lucas-Kanade
 
-# In[2]:
+# In[ ]:
 
 
 def LK_flow(prev_img, next_img, max_corners=100, quality_level=0.3, min_distance=7, block_size=7, win_size=(15, 15), max_level=2, criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03)):
@@ -137,7 +137,7 @@ def LK_flow(prev_img, next_img, max_corners=100, quality_level=0.3, min_distance
 # ### ~Lucas-Kanade Flow~
 # This is a version that returns the flow like the Farneback method.
 
-# In[107]:
+# In[ ]:
 
 
 def LK_flow_2(prev_img, next_img):
@@ -174,7 +174,7 @@ def LK_flow_2(prev_img, next_img):
 # ### compute_flow_components
 # Computes the magnitude and angle of the optical flow from the given flow vector components and then visualizes them.
 
-# In[17]:
+# In[ ]:
 
 
 def compute_flow_components(flow):
@@ -185,7 +185,7 @@ def compute_flow_components(flow):
 # ### visualize_flow_components
 # Visualizes the magnitude and angle of optical flow using matplotlib.
 
-# In[18]:
+# In[ ]:
 
 
 def visualize_flow_components(mag, ang):
@@ -211,7 +211,7 @@ def visualize_flow_components(mag, ang):
 # 
 # Quiver produces nice looking arrows, but for our purposes, overlay_flow_vectors is probably better.
 
-# In[19]:
+# In[ ]:
 
 
 def plot_flow_vectors(flow, base_img, step=16, scale=1, display=True, color='r'):
@@ -252,7 +252,7 @@ def plot_flow_vectors(flow, base_img, step=16, scale=1, display=True, color='r')
     return img_arr
 
 
-# In[20]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -266,7 +266,7 @@ def plot_flow_vectors(flow, base_img, step=16, scale=1, display=True, color='r')
 # ### overlay_flow_vectors
 # Overlays optical flow vectors on an image and returns the resulting image with vectors. Uses arrowedLine from OpenCV.
 
-# In[21]:
+# In[ ]:
 
 
 def overlay_flow_vectors(flow, base_img, step=16, scale=1, color=(255, 0, 0)):
@@ -290,7 +290,7 @@ def overlay_flow_vectors(flow, base_img, step=16, scale=1, color=(255, 0, 0)):
 
 # ### overlay_flow_vectors_with_quiver
 
-# In[22]:
+# In[ ]:
 
 
 def overlay_flow_vectors_with_quiver(flow, base_img, step=16, scale=1, color='r'):
@@ -325,7 +325,7 @@ def overlay_flow_vectors_with_quiver(flow, base_img, step=16, scale=1, color='r'
 # ### create_flow_gif
 # We can try to visualize the result using a GIF.
 
-# In[23]:
+# In[ ]:
 
 
 def create_flow_gif(images, gif_path, fps=1, loop=10, quiver=False):
@@ -354,7 +354,7 @@ def create_flow_gif(images, gif_path, fps=1, loop=10, quiver=False):
     imageio.mimsave(gif_path, images_for_gif, fps=fps, loop=loop)
 
 
-# In[24]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -372,7 +372,7 @@ def create_flow_gif(images, gif_path, fps=1, loop=10, quiver=False):
 # ### plot_LK_vectors
 # This function plots the flow vectors using the results of the LK algorithm.
 
-# In[3]:
+# In[ ]:
 
 
 def plot_LK_vectors(p0, p1, st, base_img, display=True, color='r'):
@@ -421,7 +421,7 @@ def plot_LK_vectors(p0, p1, st, base_img, display=True, color='r'):
 
 # ### display_image_cv
 
-# In[26]:
+# In[ ]:
 
 
 def display_image_cv(image_array):
@@ -435,7 +435,7 @@ def display_image_cv(image_array):
     cv2.destroyAllWindows()
 
 
-# In[27]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -449,7 +449,7 @@ def display_image_cv(image_array):
 
 # ### display_image_mpl
 
-# In[28]:
+# In[ ]:
 
 
 def display_image_mpl(image_array, scale=1):
@@ -483,7 +483,7 @@ def display_image_mpl(image_array, scale=1):
 # ### superpose_images
 # This is a function that takes two images (preferably binarized for clarity) and superposes them on top of each other with different colors.
 
-# In[29]:
+# In[ ]:
 
 
 def superpose_images(image1, image2, color1=(255, 0, 0), color2=(0, 255, 0)):
@@ -521,27 +521,27 @@ def superpose_images(image1, image2, color1=(255, 0, 0), color2=(0, 255, 0)):
     return colored_image
 
 
-# In[30]:
+# In[ ]:
 
 
-# if __name__ == '__main__':
-#     prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
-#     next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
-#     superposed = superpose_images(prev_img, next_img)
-#     display_image_cv(superposed)
+if __name__ == '__main__':
+    prev_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220723.png")
+    next_img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png")
+    superposed = superpose_images(prev_img, next_img)
+    display_image_cv(superposed)
 
 
-# In[31]:
+# In[ ]:
 
 
-# if __name__ == '__main__':
-#     motion_field = overlay_optical_flow_vectors(flow, superposed, step=16, scale=1, color=(0,0,255))
-#     display_image_cv(motion_field)
+if __name__ == '__main__':
+    motion_field = overlay_flow_vectors(flow, superposed, step=16, scale=1, color=(0,0,255))
+    display_image_cv(motion_field)
 
 
 # ### warp_image
 
-# In[68]:
+# In[ ]:
 
 
 def warp_image(img, flow):
@@ -567,7 +567,7 @@ def warp_image(img, flow):
     return warped_img
 
 
-# In[69]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -583,7 +583,7 @@ if __name__ == '__main__':
 
 # ### warp_image_2
 
-# In[70]:
+# In[ ]:
 
 
 def warp_image_2(img, flow, alpha):
@@ -606,7 +606,7 @@ def warp_image_2(img, flow, alpha):
 # ### interpolate_images
 # We're now going to try and visualize the movement of the algae from one frame to the next by interpolating between the frames. We're first going to try a linear interpolation method that simply divides the flow into **num_interpolations** fields. This function then applies a fraction of the flow to the first image and (the opposite of that flow) to the second image then blends them together.
 
-# In[99]:
+# In[ ]:
 
 
 def interpolate_images(prev_img, next_img, flow, num_interpolations=30):
@@ -622,7 +622,7 @@ def interpolate_images(prev_img, next_img, flow, num_interpolations=30):
 
 # ### visualize_movement
 
-# In[1]:
+# In[ ]:
 
 
 def visualize_movement(interpolated_images, fps=15):
@@ -642,7 +642,7 @@ def visualize_movement(interpolated_images, fps=15):
     plt.close(fig)
 
 
-# In[103]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -655,7 +655,7 @@ def visualize_movement(interpolated_images, fps=15):
 #     #display(Image(filename='interpolated_images.gif'))
 
 
-# In[108]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -667,7 +667,7 @@ if __name__ == '__main__':
     visualize_movement(interpolated_images, fps=10)
 
 
-# In[109]:
+# In[ ]:
 
 
 # Lucas-Kanade
@@ -684,7 +684,7 @@ if __name__ == '__main__':
 
 # ### calculate_mse
 
-# In[114]:
+# In[ ]:
 
 
 def calculate_mse(image1, image2):
@@ -709,7 +709,7 @@ def calculate_mse(image1, image2):
     return mse
 
 
-# In[123]:
+# In[ ]:
 
 
 if __name__ == '__main__':
