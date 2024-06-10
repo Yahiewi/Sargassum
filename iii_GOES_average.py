@@ -21,6 +21,9 @@ import cartopy.feature as cfeature
 from datetime import datetime, timedelta
 from matplotlib import ticker
 from IPython.display import Image
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
 
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
@@ -98,6 +101,197 @@ def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="v
     plt.title("Aggregate Algae Distribution on 2022-07-24")
     plt.show()
 
+
+# ## Interactive Version
+
+# In[ ]:
+
+
+def visualize_aggregate_plotly(aggregate_data, lat_range=None, lon_range=None, color="Viridis", vmax=0.001, threshold=0, output_filepath=None, filter_clouds=True):
+    # Select the desired subset
+    if lat_range:
+        aggregate_data = aggregate_data.sel(latitude=slice(*lat_range))
+    if lon_range:
+        aggregate_data = aggregate_data.sel(longitude=slice(*lon_range))
+    
+    # If filtering clouds, set NaN values to -0.1
+    if filter_clouds:
+        aggregate_data = xr.where(np.isnan(aggregate_data), -0.1, aggregate_data)
+    
+    # Convert the data to a DataFrame for Plotly
+    df = aggregate_data.to_dataframe().reset_index()
+    
+    # Filter data based on threshold
+    df = df[df[aggregate_data.name] > threshold]
+
+    # Create a 2D heatmap
+    fig = go.Figure()
+
+    # Add the heatmap trace
+    fig.add_trace(go.Heatmap(
+        z=df[aggregate_data.name],
+        x=df['longitude'],
+        y=df['latitude'],
+        colorscale=color,
+        zmin=threshold,
+        zmax=vmax,
+        colorbar=dict(title='Aggregate Floating Algae Index (FAI)')
+    ))
+
+    # Customize the layout to ensure no grey areas appear around the plot
+    fig.update_layout(
+        title="Aggregate Algae Distribution on 2022-07-24",
+        xaxis=dict(showgrid=False, zeroline=False, range=[df['longitude'].min(), df['longitude'].max()]),
+        yaxis=dict(showgrid=False, zeroline=False, range=[df['latitude'].min(), df['latitude'].max()]),
+        autosize=True,
+        margin=dict(l=0, r=0, t=40, b=0),  # adjust margins to ensure no empty space
+        paper_bgcolor='rgba(0,0,0,0)',  # make background transparent
+        plot_bgcolor='rgba(0,0,0,0)'  # ensure plot background is also transparent
+    )
+
+    # Ensure the plot stretches to fit the data precisely
+    fig.update_yaxes(scaleanchor="x", scaleratio=1)
+
+    # Save the plot if output_filepath is provided
+    if output_filepath:
+        fig.write_html(output_filepath, auto_open=True)
+    
+    # Show the plot
+    fig.show()
+
+
+# In[ ]:
+
+
+# if __name__ == '__main__':
+#     # Generating the time list
+#     times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+#     # Calculating the median data for this time period
+#     median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range= (-67, -60))
+    
+#     #Visualizing the result and comparing it to the mean 
+#     visualize_aggregate_interactive(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+
+
+# In[ ]:
+
+
+# if __name__ == '__main__':
+#     # Generating the time list
+#     times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+#     # Calculating the median data for this time period
+#     median_algae_distribution = calculate_median(times,lat_range=(14, 15), lon_range= (-67, -65))
+    
+#     #Visualizing the result and comparing it to the mean 
+#     visualize_aggregate_interactive(median_algae_distribution, (14, 15), (-67, -65), color="viridis", vmax=0.001, threshold=0)
+
+
+# This function allows us to zoom and it also shows the latitude, longitude and FAI of the pixel we're hovering over, although the zoom functionality is a bit finnicky. If we want just the zoom we can use **%matplotlib widget** at the beginning of our execution block.
+
+# In[ ]:
+
+
+# %matplotlib widget
+# if __name__ == '__main__':
+#     # Generating the time list
+#     times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+#     # Calculating the median data for this time period
+#     median_algae_distribution = calculate_median(times,lat_range=(12, 17), lon_range= (-67, -60))
+    
+#     #Visualizing the result and comparing it to the mean 
+#     visualize_aggregate(median_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
+
+
+# In[ ]:
+
+
+# %matplotlib widget
+# if __name__ == '__main__':
+#     # Generating the time list
+#     times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+#     # Calculating the median data for this time period
+#     median_algae_distribution = calculate_median(times)
+    
+#     #Visualizing the result and comparing it to the mean 
+#     visualize_aggregate(median_algae_distribution, color="viridis", vmax=0.001, threshold=0)
+
+
+# ## Split and Aggregate
+
+# In[ ]:
+
+
+def split_and_aggregate_median(lat_splits, lon_splits, time_list, threshold=0):
+    """
+    Splits the data into regions, calculates median for each region across given times, and aggregates back.
+
+    Parameters:
+    - data (xarray Dataset): The dataset containing the ABI data.
+    - lat_splits (list of float): Latitude boundaries for splitting the dataset.
+    - lon_splits (list of float): Longitude boundaries for splitting the dataset.
+    - time_list (list of str): List of formatted datetime strings in the format 'YYYYMMDD_HH-MM'.
+    - threshold (float): The threshold above which data is considered.
+
+    Returns:
+    - aggregated_median (xarray DataArray): The aggregated median distribution.
+    """
+    regional_medians = []
+
+    # Iterate over each region defined by lat and lon splits
+    for i in range(len(lat_splits) - 1):
+        for j in range(len(lon_splits) - 1):
+            lat_range = (lat_splits[i], lat_splits[i + 1])
+            lon_range = (lon_splits[j], lon_splits[j + 1])
+
+            # Fetch and process the median for this region
+            median = calculate_median(time_list, lat_range, lon_range, threshold)
+            regional_medians.append(median)
+    
+    # Combine using `concat` along a new dimension and then take the median of that dimension
+    if regional_medians:
+        combined = xr.concat(regional_medians, dim='new_dim')
+        aggregated_median = combined.median(dim='new_dim')
+        return aggregated_median
+    else:
+        return None  # or handle empty list case appropriately
+
+
+# In[ ]:
+
+
+#%matplotlib widget
+if __name__ == '__main__':
+    lat_splits = [12, 15.5, 19, 22.5, 26, 29.5, 33, 36.5, 40]  # Define latitude splits
+    lon_splits = [-100, -89, -78, -67, -56, -45, -34, -23, -12]  # Define longitude splits
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+    # Calculating the median data for this time period
+    aggregated_median = split_and_aggregate_median(lat_splits, lon_splits, times)
+    
+    #Visualizing the result and comparing it to the mean 
+    visualize_aggregate(aggregated_median, (14, 15), (-66, -65), color="viridis", vmax=0.001, threshold=0)
+
+    # Comparing to averaging on just the region
+    # Calculating the median data for this time period
+    median_algae_distribution = calculate_median(times,lat_range=(14, 15), lon_range= (-66, -65))
+    
+    #Visualizing the result and comparing it to the mean 
+    visualize_aggregate(median_algae_distribution, (14, 15), (-66, -65), color="viridis", vmax=0.001, threshold=0)
+
+    # Comparing to whole atlatnic then zooming
+    # Calculating the median data for this time period
+    median_algae_distribution = calculate_median(times)
+    
+    #Visualizing the result and comparing it to the mean 
+    visualize_aggregate(median_algae_distribution, color="viridis", vmax=0.001, threshold=0)
+
+
+# We obtain what appear to be the same results whether we calculate the median on the whole image, then zoom in, or zoom in then calculate it.
 
 # ## Calculations
 

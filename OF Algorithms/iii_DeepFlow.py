@@ -23,6 +23,8 @@ from datetime import datetime, timedelta
 from matplotlib import ticker
 from IPython.display import Image, display
 from PIL import Image as PILImage
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Append the parent directory (Sargassum) to the system path
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), os.pardir)))
@@ -204,10 +206,4 @@ if __name__ == '__main__':
     interpolated_images = interpolate_images(next_img, prev_img, flow, num_interpolations=60)
     interpolated_images.reverse()
     visualize_movement(interpolated_images, fps=30)
-
-
-# In[ ]:
-
-
-
 

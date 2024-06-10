@@ -23,7 +23,7 @@ from IPython.display import Image, display, HTML
 
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
-from iii_GOES_average import time_list, visualize_aggregate, calculate_median
+from iii_GOES_average import time_list, visualize_aggregate, calculate_median, split_and_aggregate_median
 
 
 # ## Preparing the Images
@@ -141,6 +141,9 @@ def crop_image(image):
 
 
 def process_dates(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis"):
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
     # Convert the start and end dates from strings to datetime objects
     current_date = datetime.strptime(start_date, '%Y%m%d')
     end_date = datetime.strptime(end_date, '%Y%m%d')
@@ -338,9 +341,9 @@ def equalize_image(image):
 
 
 def process_directory(source_dir, dest_dir, threshold=180, bilateral=False, binarize=False, crop=True, negative=False):
-    # # Ensure the destination directory exists
-    # if not os.path.exists(dest_dir):
-    #     os.makedirs(dest_dir)
+    # Ensure the destination directory exists
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
 
     # Iterate over all files in the source directory
     for filename in os.listdir(source_dir):
@@ -662,6 +665,56 @@ if __name__ == '__main__':
     # Process the directory (filter, binarize and crop the images)
     process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
 
+
+# In[ ]:
+
+
+### ATLANTIC TEST
+
+
+# In[ ]:
+
+
+# if __name__ == '__main__':
+#     start_date = '20220723'
+#     end_date = '20220724'
+#     directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
+#     output_directory = '/media/yahia/ballena/TEST/Atlantic' 
+#     lat_splits = [12, 16, 20, 24, 28, 32, 36, 40]  # Define latitude splits
+#     lon_splits = [-100, -90, -80, -70, -60, -50, -40, -30, -20, -12]  # Define longitude splits
+
+#     def process_dates_3(start_date, end_date, directory, output_dir, lat_splits, lon_splits, color="viridis"):
+#         current_date = datetime.strptime(start_date, '%Y%m%d')
+#         end_date = datetime.strptime(end_date, '%Y%m%d')
+        
+#         while current_date <= end_date:
+#             date_str = current_date.strftime('%Y%m%d')
+#             times = collect_times(date_str, directory)
+            
+#             if times:
+#                 times_for_day = time_list(
+#                     datetime.strptime(f'{date_str}_{times[0]}', '%Y%m%d_%H-%M'),
+#                     datetime.strptime(f'{date_str}_{times[1]}', '%Y%m%d_%H-%M'),
+#                     interval=10
+#                 )
+#                 median_distribution = split_and_aggregate_median(lat_splits, lon_splits, times_for_day)
+#                 output_file_path = os.path.join(output_dir, f'algae_distribution_{date_str}.png')
+#                 save_aggregate(median_distribution, color=color, output_filepath=output_file_path)
+            
+#             current_date += timedelta(days=1)
+
+#     # Calculate the 1-day averages and save them
+#     process_dates_3(start_date, end_date, directory, output_directory, lat_splits, lon_splits, color="viridis")
+    
+#     # Paths
+#     source_directory = '/media/yahia/ballena/TEST/Atlantic' 
+#     destination_directory = '/media/yahia/ballena/Test/Atlantic_Cropped' 
+    
+#     # Process the directory (filter, binarize and crop the images)
+#     process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
+
+
+# Saving the image after calculating the median on each region then combining gives the same exact result as calculating the median over the whole region.
 
 # In[ ]:
 
