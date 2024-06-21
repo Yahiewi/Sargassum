@@ -7,7 +7,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[ ]:
+# In[1]:
 
 
 #%matplotlib widget
@@ -29,10 +29,10 @@ import plotly.io as pio
 from ii_Data_Manipulation import visualize_4
 
 
-# ## Time List Generator
+# ## time_list
 # First, we should write a function that generates a lost of the times in the time intervals we need to make the importation of data easier. 
 
-# In[ ]:
+# In[2]:
 
 
 def time_list(start_time, end_time, interval):
@@ -58,10 +58,10 @@ def time_list(start_time, end_time, interval):
     return times
 
 
-# ## Function to visualize aggregate data 
+# ## visualize_aggregate
 # We should first write a function **(very similar to visualize_5, maybe we should make it use visualize_5)** to visualize the aggregate motion of the algae, this function would take the aggregate_data we're going to calculate as argument instead of the path to the file.
 
-# In[ ]:
+# In[3]:
 
 
 def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0, output_filepath=None, filter_clouds=True):
@@ -102,9 +102,9 @@ def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="v
     plt.show()
 
 
-# ## Interactive Version
+# ## visualize_aggregate_plotly
 
-# In[ ]:
+# In[4]:
 
 
 def visualize_aggregate_plotly(aggregate_data, lat_range=None, lon_range=None, color="Viridis", vmax=0.001, threshold=0, output_filepath=None, filter_clouds=True):
@@ -220,7 +220,7 @@ def visualize_aggregate_plotly(aggregate_data, lat_range=None, lon_range=None, c
 #     visualize_aggregate(median_algae_distribution, color="viridis", vmax=0.001, threshold=0)
 
 
-# ## Split and Aggregate
+# ## split_and_aggregate_median
 
 # In[ ]:
 
@@ -291,11 +291,27 @@ if __name__ == '__main__':
     visualize_aggregate(median_algae_distribution, color="viridis", vmax=0.001, threshold=0)
 
 
+# ## save_as_netcdf
+
+# In[17]:
+
+
+def save_as_netcdf(dataset, output_filepath):
+    """
+    Save the given Dataset to a NetCDF file.
+
+    Parameters:
+    - dataset (Dataset): The xarray Dataset to save.
+    - output_filepath (str): The path to the output NetCDF file.
+    """
+    dataset.to_netcdf(output_filepath)
+
+
 # We obtain what appear to be the same results whether we calculate the median on the whole image, then zoom in, or zoom in then calculate it.
 
 # ## Calculations
 
-# ### Calculating Mean
+# ### calculate_mean
 # - We should also write a function to calculate the aggregate (mean) data on the time frame we want using the previous function time_list. 
 # - Note: **This is only adapted to ABI-GOES for the moment.**
 # - **We can and should optimize this by making it calculate the aggregate on a selected region instead of the whole image.**
@@ -378,9 +394,9 @@ if __name__ == '__main__':
 # - Conversely, we can use the ABI-GOES aggregate image which has overall less cloud interference to interpolate the missing data points (like in the center raft for example) in the OLCI image.
 # - Use the ABI-GOES images differently (instead of calculating aggregate) and produce an image that has color for each hour to visualize the dynamics of the algae.
 
-# ### Calculating Median
+# ### calculate_median
 
-# In[ ]:
+# In[20]:
 
 
 def calculate_median(time_list, lat_range=None, lon_range=None, threshold=0):
@@ -459,25 +475,7 @@ if __name__ == '__main__':
 # In[ ]:
 
 
-if __name__ == '__main__':
-    # Generating the time list
-    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
-    
-    # Calculating the max data for this time period
-    max_algae_distribution = calculate_max(times,lat_range=(12, 17), lon_range=(-67, -60))
-    
-    # Calculating the mean data for this time period
-    average_algae_distribution = calculate_mean(times,lat_range=(12, 17), lon_range=(-67, -60))
-    
-    #Visualizing the result and comparing it to the mean
-    visualize_aggregate(max_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
-    visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
-
-
-# In[ ]:
-
-
-if __name__ == '__main__':
+if __name__ == '__main__':#
     # Generating the time list
     times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
     
@@ -492,7 +490,94 @@ if __name__ == '__main__':
     visualize_aggregate(average_algae_distribution, (12, 17), (-67, -60), color="viridis", vmax=0.001, threshold=0)
 
 
-# ### Calculating Percentiles
+# In[ ]:
+
+
+# TEST
+
+
+# In[16]:
+
+
+def calculate_median_n(times, lat_range=None, lon_range=None, threshold=0):
+    """
+    Calculate the median of algae presence over a given time range based on a list of times,
+    within specified latitude and longitude ranges.
+
+    Parameters:
+    - time_list (list of str): List of formatted datetime strings in the format 'YYYYMMDD_HH-MM'.
+    - lat_range (tuple): Tuple of (min_latitude, max_latitude).
+    - lon_range (tuple): Tuple of (min_longitude, max_longitude).
+    - threshold (float): The threshold above which data is considered.
+
+    Returns:
+    - median_dataset (Dataset): The median algae distribution within the specified region.
+    """
+    aggregate_data_list = []
+
+    # Loop over each time in the time list, loading the data and adding it to the list
+    for time_str in times:
+        file_path = f"/media/yahia/ballena/CLS/abi-goes-global-hr/cls-abi-goes-global-hr_1d_{time_str}.nc"
+        # Skip if the file does not exist
+        if not os.path.exists(file_path):
+            print(f"Skipping: {file_path} does not exist.")
+            continue
+        
+        data = xr.open_dataset(file_path)
+
+        # Apply latitude and longitude ranges if specified
+        if lat_range:
+            data = data.sel(latitude=slice(*lat_range))
+        if lon_range:
+            data = data.sel(longitude=slice(*lon_range))
+
+        # Extract the index of interest and drop the 'time' coordinate
+        algae_data = data['fai_anomaly'].squeeze(drop=True)
+
+        # Mask the data to include only algae (values greater than the threshold)
+        algae_masked = algae_data.where(algae_data > threshold)
+
+        # Add the masked data to our list (each element in this list is the data array, after processing, for the give time)
+        aggregate_data_list.append(algae_masked)
+
+    # Combine the data along a new dimension, then calculate the median along that dimension
+    # Note: Xarray's median function by default ignores nan values
+    aggregate_data = xr.concat(aggregate_data_list, dim='new_dim')
+    median_algae_distribution = aggregate_data.median(dim='new_dim')
+
+    # Create a new Dataset to include latitude and longitude
+    median_dataset = xr.Dataset({
+        'median_fai_anomaly': median_algae_distribution
+    }, coords={
+        'latitude': median_algae_distribution.latitude,
+        'longitude': median_algae_distribution.longitude
+    })
+
+    # Extract the date from the first time string and set it as an attribute (Used for the figure title)
+    date_from_time = times[0].split('_')[0]  # Assuming time_list items are 'YYYYMMDD_HH-MM'
+    median_dataset.attrs['date'] = date_from_time
+
+    return median_dataset
+
+
+# In[22]:
+
+
+if __name__ == "__main__" :
+    # Generating the time list
+    times = time_list(start_time=datetime(2022, 7, 24, 12, 0), end_time=datetime(2022, 7, 24, 18, 50), interval=10)
+    
+    # Calculate median
+    median_dataset = calculate_median(times, lat_range=(12, 17), lon_range=(-67, -60), threshold=0)
+    
+    # Save to NetCDF
+    output_filepath = '/home/yahia/Documents/Jupyter/Sargassum/median_algae_distribution.nc'
+    save_as_netcdf(median_dataset, output_filepath)
+    
+    print(f"Median algae distribution saved to {output_filepath}")
+
+
+# ### calculate_percentile
 # This is a sort of generalization of the last 3 functions, (setting the percentile to 50 will return the median, setting it to 100 the max, and to 0 the min).
 
 # In[ ]:

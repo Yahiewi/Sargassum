@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[ ]:
+# In[1]:
 
 
 import xarray as xr
@@ -23,7 +23,7 @@ from IPython.display import Image, display, HTML
 
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
-from iii_GOES_average import time_list, visualize_aggregate, calculate_median, split_and_aggregate_median
+from iii_GOES_average import time_list, visualize_aggregate, calculate_median, split_and_aggregate_median, save_as_netcdf
 
 
 # ## Preparing the Images
@@ -31,9 +31,9 @@ from iii_GOES_average import time_list, visualize_aggregate, calculate_median, s
 # 
 # One challenge is that acquisitions don't start and end at the same time for each day (acquisitions start at 12:00 for 2022/07/24 for example), so we need to be able to collect a list of the times at which we have data. 
 
-# ### Time Collector
+# ### collect_times
 
-# In[ ]:
+# In[2]:
 
 
 def collect_times(date, directory):
@@ -46,34 +46,33 @@ def collect_times(date, directory):
     return None
 
 
-# ### Saving a Figure
+# ### save_aggregate
 # Because we've encountered bugs and stack overflow when we tried to modify the function of notebook 3 by adding an optional parameter (**output_filepath**=None), which if specified saves the figure instead of showing it (and removes the legend), we've decided instead to write a new function here **save_aggregate** that can also display the image.
 
-# In[ ]:
+# In[7]:
 
 
-def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0.0001, output_filepath=None, filter_clouds=True):
+def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0.0001, output_filepath=None, netcdf_filepath=None, filter_clouds=True, display=False):
     # Select the desired subset
     if lat_range:
         aggregate_data = aggregate_data.sel(latitude=slice(*lat_range))
     if lon_range:
         aggregate_data = aggregate_data.sel(longitude=slice(*lon_range))
 
-    # If filtering clouds, set NaN values to -0.1
+    # If filtering clouds, set NaN values to zero
     if filter_clouds:
-        aggregate_data = xr.where(np.isnan(aggregate_data), -0.1, aggregate_data)
-        
+        aggregate_data = xr.where(np.isnan(aggregate_data), 0, aggregate_data)
+
     # Set up a plot with geographic projections
     fig, ax = plt.subplots(figsize=(12, 10), subplot_kw={'projection': ccrs.PlateCarree()})
     
     # Customize the map with coastlines and features
-    ax.coastlines(resolution='10m', color='black', visible=output_filepath is None)
-    ax.add_feature(cfeature.BORDERS, linestyle=':', visible=output_filepath is None)
-    ax.add_feature(cfeature.LAND, facecolor='lightgray', visible=output_filepath is None)
+    ax.coastlines(resolution='10m', color='black', visible=True)
+    ax.add_feature(cfeature.BORDERS, linestyle=':', visible=True)
+    ax.add_feature(cfeature.LAND, facecolor='lightgray', visible=True)
 
-
-    # Show gridlines only when visualizing interactively, not when saving the output
-    if output_filepath is None:
+    # Show gridlines only when visualizing interactively
+    if display:
         gl = ax.gridlines(draw_labels=True, linewidth=1, color='gray', alpha=0.5, linestyle='--')
         gl.top_labels = False
         gl.right_labels = False
@@ -81,30 +80,101 @@ def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridi
     else:
         cbar_kwargs = None
 
-    # Plot the aggregate data with the specified color, vmax, and threshold (depending if output mode is on or not)
+    # Plot the aggregate data with the specified color, vmax, and threshold
     im = aggregate_data.plot(ax=ax, x='longitude', y='latitude', transform=ccrs.PlateCarree(),
-                             cmap=color, add_colorbar=output_filepath is None,
-                             vmin=threshold, vmax=vmax, cbar_kwargs=cbar_kwargs if cbar_kwargs else None)
-    
+                             cmap=color, add_colorbar=display,
+                             vmin=threshold, vmax=vmax, cbar_kwargs=cbar_kwargs)
+
     # Set title and colorbar only when visualizing interactively
-    if output_filepath is None:
+    if display:
         im.colorbar.set_label('Aggregate Floating Algae Index (FAI)')
         plot_date = aggregate_data.attrs.get('date', 'Unknown Date')
         plt.title(f"Aggregate Algae Distribution on {plot_date}")
+        plt.show()
 
     if output_filepath:
         plt.savefig(output_filepath)  
-        plt.close(fig)  
-    else:
-        plt.show()  
+        plt.close(fig)
+
+    # Save the data as a NetCDF file if a filepath is provided
+    if netcdf_filepath:
+        # Create a new Dataset to include latitude and longitude
+        dataset = xr.Dataset({
+            'fai_anomaly': aggregate_data
+        }, coords={
+            'latitude': aggregate_data.latitude,
+            'longitude': aggregate_data.longitude
+        })
+        dataset.to_netcdf(netcdf_filepath)
+        plt.close(fig)
 
 
 # We have the option to get the raw average (without the mask for the land) or to mask the land and we should test both images to see which is best for the OF algorithms.
 
-# ### Cropping Images
+# ### process_dates
+
+# In[5]:
+
+
+def process_dates(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis", save_image=True, save_netcdf=False):
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Convert the start and end dates from strings to datetime objects
+    current_date = datetime.strptime(start_date, '%Y%m%d')
+    end_date = datetime.strptime(end_date, '%Y%m%d')
+    
+    while current_date <= end_date:
+        # Format the current date as a string in 'YYYYMMDD' format
+        date_str = current_date.strftime('%Y%m%d')
+        
+        # Discover the start and end times of image acquisition on the current day by scanning the directory
+        times = collect_times(date_str, directory)
+        
+        if times:
+            # Create a list of timestamps for the day using the discovered start and end times
+            times_for_day = time_list(
+                datetime.strptime(date_str + '_' + times[0], '%Y%m%d_%H-%M'),
+                datetime.strptime(date_str + '_' + times[1], '%Y%m%d_%H-%M'), 
+                10  # Interval between images in minutes
+            )
+            
+            # Calculate the median distribution of algae based on the list of timestamps
+            median_distribution = calculate_median(times_for_day, lat_range, lon_range)
+            
+            # Prepare the output file paths for the current day's visualization and NetCDF file
+            output_image_path = os.path.join(output_dir, f'algae_distribution_{date_str}.png') if save_image else None
+            output_netcdf_path = os.path.join(output_dir, f'algae_distribution_{date_str}.nc') if save_netcdf else None
+            
+            # Visualize the median algae distribution and save it as both an image and NetCDF file (if the optional parameters are provided)
+            save_aggregate(median_distribution, lat_range, lon_range, color=color, output_filepath=output_image_path, netcdf_filepath=output_netcdf_path, display=False)
+        
+        # Increment the current date by one day
+        current_date += timedelta(days=1)
+
+
+# In[5]:
+
+
+# start_date = '20220723'
+# end_date = '20220724'
+# directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
+# output_directory = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/ABI_Averages' 
+# lat_range = (12, 17)  
+# lon_range = (-67, -60) 
+
+# # Call the function
+# process_dates(start_date, end_date, directory, output_directory, lat_range, lon_range, save_image=True, save_netcdf=True)
+
+
+# If we look at the images, we can see that some of them are covered by clouds which makes detecting the algae impossible. A solution we could implement is to use the OLCI images (if they're more clear) and add them to the ABI aggregates (using OpenCV's **OR** operator for example).
+
+# ### Image Filters
+
+# #### crop_image
 # Let's write a function to crop images so as to remove the white space from the figure.
 
-# In[ ]:
+# In[6]:
 
 
 def crop_image(image):
@@ -135,91 +205,24 @@ def crop_image(image):
         return image  # Return original image if no contours were found
 
 
-# ### Producing the Mini Database
-
-# In[ ]:
-
-
-def process_dates(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis"):
-    # Create the output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
-    
-    # Convert the start and end dates from strings to datetime objects
-    current_date = datetime.strptime(start_date, '%Y%m%d')
-    end_date = datetime.strptime(end_date, '%Y%m%d')
-    
-    while current_date <= end_date:
-        # Format the current date as a string in 'YYYYMMDD' format
-        date_str = current_date.strftime('%Y%m%d')
-        
-        # Discover the start and end times of image acquisition on the current day by scanning the directory
-        times = collect_times(date_str, directory)
-        
-        if times:
-            # Create a list of timestamps for the day using the discovered start and end times
-            times_for_day = time_list(
-                datetime.strptime(date_str + '_' + times[0], '%Y%m%d_%H-%M'),
-                datetime.strptime(date_str + '_' + times[1], '%Y%m%d_%H-%M'), 
-                10  # Interval between images in minutes
-            )
-            
-            # Calculate the median distribution of algae based on the list of timestamps
-            median_distribution = calculate_median(times_for_day, lat_range, lon_range)
-            
-            # Prepare the output file path for the current day's visualization
-            output_file_path = os.path.join(output_dir, f'algae_distribution_{date_str}.png')
-            
-            # Visualize the median algae distribution and save it using the provided visualization function
-            save_aggregate(median_distribution, lat_range, lon_range, color=color, output_filepath=output_file_path)
-            # No need to save and close the plot here as it's handled within visualize_aggregate
-        
-        # Increment the current date by one day
-        current_date += timedelta(days=1)
-
-
-# In[ ]:
-
-
-# start_date = '20220724'
-# end_date = '20220802'
-# directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-# output_directory = '/home/yahia/Documents/Jupyter/Images/ABI_Averages' 
-# latitude_range = (12, 17)  
-# longitude_range = (-67, -60) 
-
-# # Call the function
-# process_dates(start_date, end_date, directory, output_directory, latitude_range, longitude_range, color="binary")
-
-
-# In[ ]:
-
-
-# #Displaying the result
-# image_path = '/home/yahia/Documents/Jupyter/Images/algae_distribution_20220724.png'
-# display(Image(filename=image_path, width = 500))
-
-
-# If we look at the images, we can see that some of them are covered by clouds which makes detecting the algae impossible. A solution we could implement is to use the OLCI images (if they're more clear) and add them to the ABI aggregates (using OpenCV's **OR** operator for example).
-
-# ### Image Filters
-
-# #### Binarizing the Images
+# #### binarize_image
 # Binarizing the images (indicating the presence of algae by absolute black and the rest by white) might be beneficial for our Optical Flow algorithms.
 
-# In[ ]:
+# In[7]:
 
 
 def binarize_image(image, threshold):
-    # Load image in grayscale
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Ensure the image is grayscale
+    if len(image.shape) == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # Apply binary thresholding
     _, binary_image = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
     return binary_image
 
 
-# #### Bilateral Filter
+# #### bilateral_image
 
-# In[ ]:
+# In[8]:
 
 
 def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
@@ -245,41 +248,9 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
     return bilateral
 
 
-# In[ ]:
+# #### ~edges~
 
-
-# image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages/algae_distribution_20220724.png"
-# image = cv2.imread(image_path)
-# bilateral = bilateral_image(image, diameter=7, sigmaColor=75, sigmaSpace=75)
-# new_filename = "Bilateral_algae_distribution_20220724.png"
-# output_path = os.path.join('/home/yahia/Documents/Jupyter/Images/ABI_Averages_Bilateral', new_filename)
-# cv2.imwrite(output_path, bilateral)
-# # Displaying the non-filtered image
-# display(Image(filename='/home/yahia/Documents/Jupyter/Images/ABI_Averages/algae_distribution_20220724.png', width=700)) 
-# # Displaying the bilateral image
-# display(Image(filename='/home/yahia/Documents/Jupyter/Images/ABI_Averages_Bilateral/Bilateral_algae_distribution_20220724.png', width=700)) 
-
-
-# ##### Bilateral then Binarization
-
-# In[ ]:
-
-
-# image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages_Bilateral/Bilateral_algae_distribution_20220724.png"
-# image = cv2.imread(image_path)
-# binary = binarize_image(image, threshold=180)
-# new_filename = "Binarized_Bilateral_algae_distribution_20220724.png"
-# output_path = os.path.join('/home/yahia/Documents/Jupyter/Images/ABI_Averages_Binarized_Bilateral', new_filename)
-# cv2.imwrite(output_path, binary)
-# # Displaying the binarized median image 
-# display(Image(filename='/home/yahia/Documents/Jupyter/Images/ABI_Averages_Binarized_Median/Binarized_Median_algae_distribution_20220724.png', width=700))  
-# # Displaying the binarized bilateral image 
-# display(Image(filename='/home/yahia/Documents/Jupyter/Images/ABI_Averages_Binarized_Bilateral/Binarized_Bilateral_algae_distribution_20220724.png', width=700))  
-
-
-# #### ~Edge Detection~
-
-# In[ ]:
+# In[9]:
 
 
 def edges(image_path):
@@ -290,23 +261,12 @@ def edges(image_path):
     return edges
 
 
-# In[ ]:
-
-
-# image_path = "/home/yahia/Documents/Jupyter/Images/ABI_Averages_Binarized_Median/Binarized_Median_algae_distribution_20220724.png"
-# edges = edges(image_path)
-# new_filename = "Edges_algae_distribution_20220724.png"
-# output_path = os.path.join('/home/yahia/Documents/Jupyter/Images/ABI_Averages_Edges', new_filename)
-# cv2.imwrite(output_path, edges)
-# display(Image(filename='/home/yahia/Documents/Jupyter/Images/ABI_Averages_Edges/Edges_algae_distribution_20220724.png', width=700))  
-
-
 # Here we've applied the edge detection algorithm to the binarized filtered image. This algorithm clearly delimits the edges of the algae rafts which may be useful later on.
 
 # #### ~equalize_image~
 # This is an optional image processing step which should increase contrast in the image.
 
-# In[ ]:
+# In[10]:
 
 
 def equalize_image(image):
@@ -321,21 +281,105 @@ def equalize_image(image):
     return equalized
 
 
-# In[ ]:
-
-
-# if __name__ == "__main__":
-#     img = cv2.imread("/home/yahia/Documents/Jupyter/Sargassum/Images/ABI_Averages_Processed_Viridis/Processed_algae_distribution_20220723.png")
-#     img_eq = equalize_image(img)
-#     display_image_mpl(img)
-#     display_image_mpl(img_eq)
-
-
 # #### Conclusion
 # After trying out various combinations, it seems the best image we have obtained so far is by **applying a bilateral filter and then binarizing the image** (median filter is still an option, although bilateral filters are better for preserving the edges).
 
-# ### Saving Images
-# This function takes as input images and applies a certain function (for now bilateral_function then binarize_image but we could generalize this to work with other functions) to them and then saves them in the provided directory.
+# ### process_netCDF
+# Takes as input a netCDF file and applies the wanted filters to it and outputs another netCDF file.
+
+# In[39]:
+
+
+def process_netCDF(source_path, dest_path, threshold=9, bilateral=False, binarize=False, crop=True, negative=False):
+    # Read the NetCDF file
+    dataset = xr.open_dataset(source_path)
+    
+    # Extract the only variable in the dataset
+    variable_name = list(dataset.data_vars)[0]
+    data = dataset[variable_name].values
+
+    # Ensure the data is 2D (grayscale image)
+    if len(data.shape) == 3:
+        data = data[0]  # Assuming the data is 3D and taking the first slice
+
+    # Convert the data to an 8-bit image
+    image = cv2.normalize(data, None, 0, 255, cv2.NORM_MINMAX, cv2.CV_8U)
+
+    # Apply bilateral filter if required
+    if bilateral:
+        image = bilateral_image(image)
+
+    # Apply binary thresholding if required
+    if binarize:
+        image = binarize_image(image, threshold)
+
+    # Crop the image if required
+    if crop:
+        image = crop_image(image)
+
+    # Make the image negative if required
+    if negative:
+        image = cv2.bitwise_not(image)
+
+    # Save the processed data back to a new NetCDF file
+    processed_data = xr.DataArray(image, dims=dataset[variable_name].dims, coords=dataset[variable_name].coords)
+    processed_dataset = xr.Dataset({variable_name: processed_data})
+
+    processed_dataset.to_netcdf(dest_path)
+
+
+# In[44]:
+
+
+# if __name__ == '__main__':
+#     # Paths
+#     source_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/ABI_Averages/algae_distribution_20220723.nc'
+#     dest_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/ABI_Averages/Processed_algae_distribution_20220723.nc'
+    
+#     # Process the directory
+#     process_netCDF(source_path, dest_path, threshold=9, bilateral=False, binarize=True, crop=False, negative=False)
+
+#     # NOTE: if you get permission denied, don't forget to close ncviewer first
+
+
+# ### process_directory_netCDF
+# Processes all the netCDF file in a given directory by calling the process_netCDF function on each one.
+
+# In[42]:
+
+
+def process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False, binarize=True, crop=False, negative=False):
+    # Ensure the destination directory exists
+    if not os.path.exists(dest_dir):
+        os.makedirs(dest_dir)
+
+    # Iterate over all files in the source directory
+    for filename in os.listdir(source_dir):
+        if filename.endswith('.nc'):
+            # Original NetCDF file path
+            source_path = os.path.join(source_dir, filename)
+            
+            # New filename with 'Processed' prefix
+            new_filename = 'Processed_' + filename
+            
+            # Define the output path for the processed NetCDF file
+            dest_path = os.path.join(dest_dir, new_filename)
+            
+            # Process the NetCDF file
+            process_netCDF(source_path, dest_path, threshold, bilateral, binarize, crop, negative)
+
+
+# In[45]:
+
+
+# if __name__ == '__main__':
+#     source_dir = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/ABI_Averages/'
+#     dest_dir = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/Processed_ABI_Averages'
+#     process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False, binarize=True, crop=False, negative=False)
+
+
+# ### process_directory
+# This function takes as input images and applies the wanted functions to them and then saves them in the provided directory.
 
 # In[ ]:
 

@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[ ]:
+# In[1]:
 
 
 import xarray as xr
@@ -284,10 +284,4 @@ if __name__ == '__main__':
     plt.imshow(final_image)
     plt.axis('off')
     plt.show()
-
-
-# In[ ]:
-
-
-
 
