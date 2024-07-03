@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -233,6 +233,7 @@ def process_region(lat_range, lon_range, lat_index, lon_index, n):
 # In[ ]:
 
 
+# Test script for n^2 regions
 if __name__ == '__main__':
     n = 24
     lat_splits = np.linspace(12, 40, n + 1)

@@ -7,7 +7,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 #%matplotlib widget
@@ -32,7 +32,7 @@ from ii_Data_Manipulation import visualize_4
 # ## time_list
 # First, we should write a function that generates a lost of the times in the time intervals we need to make the importation of data easier. 
 
-# In[2]:
+# In[ ]:
 
 
 def time_list(start_time, end_time, interval):
@@ -61,7 +61,7 @@ def time_list(start_time, end_time, interval):
 # ## visualize_aggregate
 # We should first write a function **(very similar to visualize_5, maybe we should make it use visualize_5)** to visualize the aggregate motion of the algae, this function would take the aggregate_data we're going to calculate as argument instead of the path to the file.
 
-# In[3]:
+# In[ ]:
 
 
 def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0, output_filepath=None, filter_clouds=True):
@@ -104,7 +104,7 @@ def visualize_aggregate(aggregate_data, lat_range=None, lon_range=None, color="v
 
 # ## visualize_aggregate_plotly
 
-# In[4]:
+# In[ ]:
 
 
 def visualize_aggregate_plotly(aggregate_data, lat_range=None, lon_range=None, color="Viridis", vmax=0.001, threshold=0, output_filepath=None, filter_clouds=True):
@@ -293,7 +293,7 @@ if __name__ == '__main__':
 
 # ## save_as_netcdf
 
-# In[17]:
+# In[ ]:
 
 
 def save_as_netcdf(dataset, output_filepath):
@@ -396,7 +396,7 @@ if __name__ == '__main__':
 
 # ### calculate_median
 
-# In[20]:
+# In[ ]:
 
 
 def calculate_median(time_list, lat_range=None, lon_range=None, threshold=0):
@@ -496,7 +496,7 @@ if __name__ == '__main__':#
 # TEST
 
 
-# In[16]:
+# In[ ]:
 
 
 def calculate_median_n(times, lat_range=None, lon_range=None, threshold=0):
@@ -560,7 +560,7 @@ def calculate_median_n(times, lat_range=None, lon_range=None, threshold=0):
     return median_dataset
 
 
-# In[22]:
+# In[ ]:
 
 
 if __name__ == "__main__" :

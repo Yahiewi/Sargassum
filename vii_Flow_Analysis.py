@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[4]:
+# In[ ]:
 
 
 import xarray as xr
@@ -41,9 +41,9 @@ from v_i_OF_Functions import *
 # ## Quantitative Analysis
 # Here we're going to try to visualize the magnitude of the displacement vectors in meters to be able to judge whether the flow our algorithm is physically consistent or not.
 
-# ### calculate_velocity
+# ### ~*calculate_velocity*~
 
-# In[1]:
+# In[ ]:
 
 
 def calculate_velocity(flow, resolution_km=1, time_seconds=24*3600):
@@ -58,9 +58,9 @@ def calculate_velocity(flow, resolution_km=1, time_seconds=24*3600):
     return velocity_m_per_s
 
 
-# ### visualize_velocity
+# ### *visualize_velocity*
 
-# In[17]:
+# In[ ]:
 
 
 def visualize_velocity(velocity, prev_img):
@@ -72,7 +72,7 @@ def visualize_velocity(velocity, prev_img):
     plt.show()
 
 
-# In[18]:
+# In[ ]:
 
 
 # Zoom
@@ -98,9 +98,9 @@ if __name__ == '__main__':
 # ## Image Segmentation
 # Here we'll try to calculate the average of the vectors on each algae aggregate so as to be able to visualize and quantify the movement of the whole aggregate instead of individual pixels.
 
-# ### segment_aggregations
+# ### *segment_aggregations*
 
-# In[19]:
+# In[ ]:
 
 
 def segment_aggregations(mask):
@@ -111,9 +111,9 @@ def segment_aggregations(mask):
     return contours
 
 
-# ### calculate_average_vectors
+# ### *calculate_average_vectors*
 
-# In[20]:
+# In[ ]:
 
 
 def calculate_average_vectors(flow, contours):
@@ -130,10 +130,10 @@ def calculate_average_vectors(flow, contours):
     return avg_vectors
 
 
-# ### haversine
+# ### *haversine*
 # This function was tested and returns correct results (distance in km)
 
-# In[21]:
+# In[ ]:
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -153,10 +153,10 @@ def haversine(lon1, lat1, lon2, lat2):
     return c * r
 
 
-# ### calculate_area_haversine
+# ### *calculate_area_haversine*
 # Since the distances are not uniform in the image we can't directly use **cv2.contourArea** to calculate the area as this function calculates it in terms of pixels.
 
-# In[22]:
+# In[ ]:
 
 
 def calculate_area_haversine(contour, lons, lats):
@@ -180,9 +180,9 @@ def calculate_area_haversine(contour, lons, lats):
     return area_km2
 
 
-# ### generate_lat_lon_arrays
+# ### *generate_lat_lon_arrays*
 
-# In[23]:
+# In[ ]:
 
 
 def generate_lat_lon_arrays(lat_range, lon_range, image_shape):
@@ -195,10 +195,10 @@ def generate_lat_lon_arrays(lat_range, lon_range, image_shape):
     return lats, lons
 
 
-# ### calculate_velocity_and_angles
+# ### *calculate_velocity_and_angles*
 # A generalization of the calculate_velocity function defined above.
 
-# In[24]:
+# In[ ]:
 
 
 def calculate_velocity_and_angle(vector, lon1, lat1, lon2, lat2, time_seconds=24*3600):
@@ -215,12 +215,12 @@ def calculate_velocity_and_angle(vector, lon1, lat1, lon2, lat2, time_seconds=24
     return velocity_m_per_s, angle_degrees
 
 
-# ### calculate_angular_velocity
+# ### *calculate_angular_velocity*
 # Since we're not considering individual pixels in this section, we need the angular velocity along with the regular velocity to be able to describe the movement of the contour.
 # 
 # **Right now, this function returns absurd results**.
 
-# In[25]:
+# In[ ]:
 
 
 def calculate_angular_velocity(flow, contour, centroid, resolution_km=1, time_seconds=24*3600, units='degrees'):
@@ -251,9 +251,9 @@ def calculate_angular_velocity(flow, contour, centroid, resolution_km=1, time_se
     return angular_velocity_units_per_s
 
 
-# ### plot_aggregations_with_vectors
+# ### *plot_aggregations_with_vectors*
 
-# In[26]:
+# In[ ]:
 
 
 def plot_aggregations_with_vectors(img, contours, avg_vectors):
@@ -282,7 +282,7 @@ def plot_aggregations_with_vectors(img, contours, avg_vectors):
     plt.show()
 
 
-# In[27]:
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -309,9 +309,9 @@ if __name__ == "__main__":
 # ## Interactive Plot
 # The idea here is to be able to hover with the mouse over a contour and see the corresponding velocity.
 
-# ### plot_interactive_contours_with_vectors
+# ### *plot_interactive_contours_with_vectors*
 
-# In[15]:
+# In[ ]:
 
 
 def plot_interactive_contours_with_vectors(img, contours, avg_vectors, flow, lons, lats, grid_step=10):
@@ -387,7 +387,7 @@ def plot_interactive_contours_with_vectors(img, contours, avg_vectors, flow, lon
     fig.show()
 
 
-# In[16]:
+# In[ ]:
 
 
 if __name__ == "__main__":

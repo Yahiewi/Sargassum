@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -20,10 +20,13 @@ import cartopy.feature as cfeature
 from datetime import datetime, timedelta
 from matplotlib import ticker
 from IPython.display import Image, display, HTML
+from multiprocessing import Pool
+from scipy.ndimage import label
 
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
 from iii_GOES_average import time_list, visualize_aggregate, calculate_median, split_and_aggregate_median, save_as_netcdf
+from v_i_OF_Functions import *
 
 
 # ## Preparing the Images
@@ -31,9 +34,9 @@ from iii_GOES_average import time_list, visualize_aggregate, calculate_median, s
 # 
 # One challenge is that acquisitions don't start and end at the same time for each day (acquisitions start at 12:00 for 2022/07/24 for example), so we need to be able to collect a list of the times at which we have data. 
 
-# ### collect_times
+# ### *collect_times*
 
-# In[2]:
+# In[ ]:
 
 
 def collect_times(date, directory):
@@ -46,10 +49,10 @@ def collect_times(date, directory):
     return None
 
 
-# ### save_aggregate
+# ### *save_aggregate*
 # Because we've encountered bugs and stack overflow when we tried to modify the function of notebook 3 by adding an optional parameter (**output_filepath**=None), which if specified saves the figure instead of showing it (and removes the legend), we've decided instead to write a new function here **save_aggregate** that can also display the image.
 
-# In[7]:
+# In[ ]:
 
 
 def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0.0001, output_filepath=None, netcdf_filepath=None, filter_clouds=True, display=False):
@@ -111,9 +114,9 @@ def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridi
 
 # We have the option to get the raw average (without the mask for the land) or to mask the land and we should test both images to see which is best for the OF algorithms.
 
-# ### process_dates
+# ### *process_dates*
 
-# In[5]:
+# In[ ]:
 
 
 def process_dates(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis", save_image=True, save_netcdf=False):
@@ -153,7 +156,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
         current_date += timedelta(days=1)
 
 
-# In[5]:
+# In[ ]:
 
 
 # start_date = '20220723'
@@ -169,12 +172,58 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
 
 # If we look at the images, we can see that some of them are covered by clouds which makes detecting the algae impossible. A solution we could implement is to use the OLCI images (if they're more clear) and add them to the ABI aggregates (using OpenCV's **OR** operator for example).
 
+# ### *plot_xarray*
+# Takes as input an xarray and outputs an interactive graph where you can hover over the pixels to get the corresponding value. Useful for debugging and testing.
+
+# In[ ]:
+
+
+def plot_xarray(xarray_dataset, variable_name="fai_anomaly", title='Interactive Plot', xlabel='Longitude Index', ylabel='Latitude Index', cmap='viridis'):
+    """
+    Plot the specified variable from the given xarray dataset interactively.
+    
+    Parameters:
+    xarray_dataset (xr.Dataset): The xarray dataset containing the data to plot.
+    variable_name (str): The name of the variable to plot.
+    title (str): The title of the plot.
+    xlabel (str): The label for the x-axis.
+    ylabel (str): The label for the y-axis.
+    cmap (str): The colormap to use for the plot.
+    """
+    get_ipython().run_line_magic('matplotlib', 'widget')
+    
+    xarray_data = xarray_dataset[variable_name]
+    
+    def plot_data(x=0, y=0):
+        fig, ax = plt.subplots(figsize=(10, 6))
+        im = ax.imshow(xarray_data, origin='lower', cmap=cmap)
+        
+        # Title and labels
+        ax.set_title(title)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        
+        # Text annotation for displaying value under cursor
+        text = ax.text(0, 0, '', va='bottom', ha='left')
+        
+        def onclick(event):
+            # Get the x and y pixel coords
+            ix, iy = int(event.xdata + 0.5), int(event.ydata + 0.5)
+            value = xarray_data.isel(longitude=ix, latitude=iy).values
+            text.set_text(f'Value: {value}')
+            text.set_position((ix, iy))
+        
+        fig.canvas.mpl_connect('button_press_event', onclick)
+    
+    interact(plot_data, x=(0, xarray_data.shape[1] - 1), y=(0, xarray_data.shape[0] - 1))
+
+
 # ### Image Filters
 
-# #### crop_image
+# #### *crop_image*
 # Let's write a function to crop images so as to remove the white space from the figure.
 
-# In[6]:
+# In[ ]:
 
 
 def crop_image(image):
@@ -205,10 +254,10 @@ def crop_image(image):
         return image  # Return original image if no contours were found
 
 
-# #### binarize_image
+# #### *binarize_image*
 # Binarizing the images (indicating the presence of algae by absolute black and the rest by white) might be beneficial for our Optical Flow algorithms.
 
-# In[7]:
+# In[ ]:
 
 
 def binarize_image(image, threshold):
@@ -220,9 +269,55 @@ def binarize_image(image, threshold):
     return binary_image
 
 
-# #### bilateral_image
+# #### ~*binarize_otsu_image*~
+# Automatic binarization using Otsu's method (which calculates an optimal threshold value).
+# This returns a very noisy image in general and especially when applied to the atlantic NetCDF image.
 
-# In[8]:
+# In[ ]:
+
+
+def binarize_otsu_image(image):
+    # Ensure the image is grayscale
+    if len(image.shape) == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Apply Otsu's thresholding
+    _, binary_image = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    return binary_image
+
+
+# #### ~*binarize_adaptive_image*~
+# Calculates thresholds for smaller regions of the image.
+# Very aggressively filters the atlantic NetCDF image.
+
+# In[ ]:
+
+
+def binarize_adaptive_image(image):
+    # Ensure the image is grayscale
+    if len(image.shape) == 3:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Apply adaptive thresholding
+    binary_image = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                         cv2.THRESH_BINARY, 11, 2)
+    return binary_image
+
+
+# In[ ]:
+
+
+# if __name__ == "__main__":
+#     path = "/media/yahia/ballena/ABI/Antilles/ABI_Averages_Antilles/algae_distribution_20220723.png"
+#     image = cv2.imread(path)
+#     display_image_mpl(image)
+#     binary = binarize_image(image, 120)
+#     display_image_mpl(binary)
+#     adaptive = binarize_adaptive_image(image)
+#     display_image_mpl(adaptive)
+
+
+# #### *bilateral_image*
+
+# In[ ]:
 
 
 def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
@@ -248,9 +343,9 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
     return bilateral
 
 
-# #### ~edges~
+# #### ~*edges*~
 
-# In[9]:
+# In[ ]:
 
 
 def edges(image_path):
@@ -263,34 +358,144 @@ def edges(image_path):
 
 # Here we've applied the edge detection algorithm to the binarized filtered image. This algorithm clearly delimits the edges of the algae rafts which may be useful later on.
 
-# #### ~equalize_image~
+# #### ~*equalize_image*~
 # This is an optional image processing step which should increase contrast in the image.
 
-# In[10]:
+# In[ ]:
 
 
 def equalize_image(image):
-    """
-    Enhances contrast by applying histogram equalization.
-    
-    :param image: The input image.
-    :return: The preprocessed image.
-    """
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     equalized = cv2.equalizeHist(gray)
     return equalized
 
 
-# #### Conclusion
-# After trying out various combinations, it seems the best image we have obtained so far is by **applying a bilateral filter and then binarizing the image** (median filter is still an option, although bilateral filters are better for preserving the edges).
+# #### *filter_by_size*
+# This function filters out the small sargassum aggregates which might be noise.
+# 
+# **The smaller the threshold is, the slower it is. No longer.**
 
-# ### process_netCDF
+# In[ ]:
+
+
+def filter_by_size(image, size_threshold):
+    if len(image.shape) != 2:
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(image, connectivity=8)
+    valid_labels = [i for i in range(1, num_labels) if stats[i, cv2.CC_STAT_AREA] >= size_threshold]
+    
+    filtered_image = np.isin(labels, valid_labels).astype(np.uint8) * 255
+    return filtered_image
+
+
+# The following function is used to create a NetCDF that will be used for mask_coast. (One-time use)
+
+# In[ ]:
+
+
+# def create_reduced_netcdf(input_file, output_file):
+#     # Load the original dataset
+#     ds = xr.open_dataset(input_file)
+    
+#     # Extract the latitude and longitude values from gphit and glamt
+#     latitude = ds['gphit'].values[:, 0]  # Assuming latitude varies along the first dimension
+#     longitude = ds['glamt'].values[0, :]  # Assuming longitude varies along the second dimension
+    
+#     # Ensure unique and sorted values for coordinates
+#     latitude = np.unique(latitude)
+#     longitude = np.unique(longitude)
+    
+#     # Create a new DataArray for Distcoast with the new coordinates
+#     distcoast = xr.DataArray(ds['Distcoast'].values, dims=('latitude', 'longitude'), coords={'latitude': latitude, 'longitude': longitude})
+    
+#     # Create a new dataset
+#     new_ds = xr.Dataset({'Distcoast': distcoast})
+    
+#     # Save the new dataset to a NetCDF file
+#     new_ds.to_netcdf(output_file)
+    
+#     return new_ds
+    
+# if __name__ == "__main__":
+#     input_file = "/home/yahia/Documents/Jupyter/Sargassum/SARG12_distcoast.nc"
+#     output_file = '/home/yahia/Documents/Jupyter/Sargassum/distcoast.nc'
+#     new_dataset = create_reduced_netcdf(input_file, output_file)
+#     print(new_dataset)
+
+
+# #### *mask_coast*
+# Function to filter detections that are close to the coast. Unlike the other functions, this one takes in a dataset as input not an image.
+
+# In[ ]:
+
+
+def mask_coast(fai_dataset, distcoast_dataset_path='/home/yahia/Documents/Jupyter/Sargassum/Utilities/distcoast.nc', 
+               threshold=5000, land_mask=True):
+    # Load the distance from coast dataset
+    distcoast_dataset = xr.open_dataset(distcoast_dataset_path)
+    dist_from_coast = distcoast_dataset['Distcoast']
+    
+    # Ensure fai_dataset has 'latitude' and 'longitude' coordinates
+    if 'latitude' not in fai_dataset.coords or 'longitude' not in fai_dataset.coords:
+        fai_dataset = fai_dataset.rename({'y': 'latitude', 'x': 'longitude'})
+    
+    # Interpolate the distance from coast data to match fai_dataset's coordinate grid
+    interpolated_dist_from_coast = dist_from_coast.interp(
+        latitude=fai_dataset.latitude, 
+        longitude=fai_dataset.longitude, 
+        method='nearest'
+    )
+    
+    # Define the boxes representing parts of North America
+    box1 = (fai_dataset.longitude >= -100) & (fai_dataset.longitude <= -72) & (fai_dataset.latitude >= 28) & (fai_dataset.latitude <= 40)
+    box2 = (fai_dataset.longitude >= -100) & (fai_dataset.longitude <= -79.68) & (fai_dataset.latitude >= 24) & (fai_dataset.latitude <= 28)
+    box3 = (fai_dataset.longitude >= -100) & (fai_dataset.longitude <= -86) & (fai_dataset.latitude >= 17) & (fai_dataset.latitude <= 24)
+    box4 = (fai_dataset.longitude >= -100) & (fai_dataset.longitude <= -79) & (fai_dataset.latitude >= 12) & (fai_dataset.latitude <= 17)
+    
+    # Combine the boxes into a single mask where True means it's within the NA boxes
+    na_mask = box1 | box2 | box3 | box4
+    
+    # Mask where the distance is greater than or equal to the threshold OR outside NA boxes
+    mask = (interpolated_dist_from_coast >= threshold) | ~na_mask
+    
+    # Optionally set land (distcoast == 0) to NaN
+    if land_mask:
+        land_mask = interpolated_dist_from_coast == 0
+        interpolated_dist_from_coast = interpolated_dist_from_coast.where(~land_mask, other=np.nan)
+        # Apply the mask to keep original values where the mask is True or set to 0 where False, and NaN for land
+        masked_fai_dataset = fai_dataset.where(mask, other=0)
+        masked_fai_dataset = masked_fai_dataset.where(~land_mask, other=np.nan)
+    else:
+        # Apply the mask without considering the land explicitly
+        masked_fai_dataset = fai_dataset.where(mask, other=0)
+    
+    return masked_fai_dataset
+
+
+# In[ ]:
+
+
+if __name__ == "__main__":
+    fai_dataset = xr.open_dataset('/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages/algae_distribution_20220723.nc')
+    threshold = 50000
+    masked_fai_dataset = mask_coast(fai_dataset, threshold=threshold, land_mask=False)
+    print(masked_fai_dataset)
+    masked_fai_dataset.to_netcdf("/home/yahia/Documents/Jupyter/Sargassum/Images/Test/zboub.nc")
+    # plot_xarray(masked_fai_dataset)
+
+
+# ### *process_netCDF*
 # Takes as input a netCDF file and applies the wanted filters to it and outputs another netCDF file.
 
-# In[39]:
+# In[ ]:
 
 
-def process_netCDF(source_path, dest_path, threshold=9, bilateral=False, binarize=False, crop=True, negative=False):
+def process_netCDF(
+    source_path, dest_path=None, threshold=1, bilateral=False, binarize=False, 
+    crop=False, negative=False, filter_small=False, size_threshold=50, 
+    coast_mask=False, coast_threshold=5000, land_mask=False):
+    
     # Read the NetCDF file
     dataset = xr.open_dataset(source_path)
     
@@ -312,7 +517,7 @@ def process_netCDF(source_path, dest_path, threshold=9, bilateral=False, binariz
     # Apply binary thresholding if required
     if binarize:
         image = binarize_image(image, threshold)
-
+    
     # Crop the image if required
     if crop:
         image = crop_image(image)
@@ -320,15 +525,76 @@ def process_netCDF(source_path, dest_path, threshold=9, bilateral=False, binariz
     # Make the image negative if required
     if negative:
         image = cv2.bitwise_not(image)
+        
+    # Filter small components if required
+    if filter_small:
+        image = filter_by_size(image, size_threshold)
 
-    # Save the processed data back to a new NetCDF file
+    # Convert image back to data array for further processing
     processed_data = xr.DataArray(image, dims=dataset[variable_name].dims, coords=dataset[variable_name].coords)
+
+    # Reconstruct dataset with processed data for applying coastal mask
     processed_dataset = xr.Dataset({variable_name: processed_data})
+    
+    # Apply coastal mask if required (the else clause is to allow application of land_mask without coast_mask)
+    if coast_mask:
+        processed_dataset = mask_coast(processed_dataset, threshold=coast_threshold, land_mask=land_mask)
 
-    processed_dataset.to_netcdf(dest_path)
+    else:
+        processed_dataset = mask_coast(processed_dataset, threshold=0, land_mask=land_mask)
+
+    # Save the processed data back to a new NetCDF file only if dest_path is specified
+    if dest_path:
+        processed_dataset.to_netcdf(dest_path)
+
+    return processed_dataset
 
 
-# In[44]:
+# In[ ]:
+
+
+# Atlantic Averagei
+if __name__ == "__main__":
+    # Paths
+    source_path = "/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages/algae_distribution_20220723.nc"
+    dest_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/Filtered/Filtered_20220723.nc'
+    
+    # Process the directory
+    process_netCDF(source_path, dest_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                   filter_small=True, size_threshold=10, land_mask=True, coast_mask=True, coast_threshold=50000)
+    # NOTE: if you get permission denied, don't forget to close ncviewer first
+
+
+# Saving the result as a NetCDF with two variables (fai_anomaly and filtered).
+
+# In[ ]:
+
+
+if __name__ == "__main__":
+    source_path = "/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages/algae_distribution_20220723.nc"
+
+    # First dimension
+    fai_anomaly_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                          filter_small=False, land_mask=True, coast_mask=False)
+    
+    # Second dimension
+    filtered_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                       filter_small=True, size_threshold=10, land_mask=True, coast_mask=True, coast_threshold=50000)
+
+    # Extract the main variable from each dataset
+    fai_anomaly_data = fai_anomaly_dataset[list(fai_anomaly_dataset.data_vars)[0]]
+    filtered_data = filtered_dataset[list(filtered_dataset.data_vars)[0]]
+    
+    # Combine both datasets into a new dataset with both variables
+    combined_dataset = xr.Dataset({
+        'fai_anomaly': fai_anomaly_data,
+        'filtered': filtered_data
+    })
+
+    combined_dataset.to_netcdf('/home/yahia/Documents/Jupyter/Sargassum/Images/Test/two_dimensions.nc')
+
+
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -342,10 +608,10 @@ def process_netCDF(source_path, dest_path, threshold=9, bilateral=False, binariz
 #     # NOTE: if you get permission denied, don't forget to close ncviewer first
 
 
-# ### process_directory_netCDF
+# ### *process_directory_netCDF*
 # Processes all the netCDF file in a given directory by calling the process_netCDF function on each one.
 
-# In[42]:
+# In[ ]:
 
 
 def process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False, binarize=True, crop=False, negative=False):
@@ -369,7 +635,7 @@ def process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False,
             process_netCDF(source_path, dest_path, threshold, bilateral, binarize, crop, negative)
 
 
-# In[45]:
+# In[ ]:
 
 
 # if __name__ == '__main__':
@@ -378,7 +644,7 @@ def process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False,
 #     process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False, binarize=True, crop=False, negative=False)
 
 
-# ### process_directory
+# ### *process_directory*
 # This function takes as input images and applies the wanted functions to them and then saves them in the provided directory.
 
 # In[ ]:

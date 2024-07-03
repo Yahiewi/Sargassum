@@ -9,7 +9,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -26,7 +26,7 @@ import cartopy.feature as cfeature
 # - color (optional): Colormap for the display, viridis by default. 
 # 
 
-# In[2]:
+# In[ ]:
 
 
 def visualize(file_path, lat_range = None, lon_range = None, color = "viridis"):
@@ -76,7 +76,7 @@ def visualize(file_path, lat_range = None, lon_range = None, color = "viridis"):
 
 # ## MODIS Visualization
 
-# In[3]:
+# In[ ]:
 
 
 if __name__ == '__main__':

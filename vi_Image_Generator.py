@@ -8,7 +8,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -218,57 +218,43 @@ from iv_Image_Processing import collect_times, save_aggregate, crop_image, proce
 
 
 # ### Partitioning the Atlantic
-# We're going to divide the Atlantic into $n²$ regions (latitudes: 12°N-40°N, longitudes: 12°W-100°W), then process each region (average the ABI-GOES images, then apply filters) so we can later apply an OF algorithm on them and finally combine the result.
-
-# #### Sequential
+# We're going to divide the Atlantic into $n²$ regions (latitudes: 12°N-40°N, longitudes: 12°W-100°W), then process each region (average the ABI-GOES images, then apply filters) so we can later apply an OF algorithm on them and finally combine the result. We're going to use **concurrent** code to make the image generation process faster.
 
 # In[ ]:
 
 
-# if __name__ == '__main__':
-#     lat_splits = [12, 15.5, 19, 22.5, 26, 29.5, 33, 36.5, 40] 
-#     lon_splits = [-12, -23, -34, -45, -56, -67, -78, -89, -100] 
-#     start_date = '20220723'
-#     end_date = '20220724'
-
-#     start_time = time.time()
-
-#     for i in range(len(lat_splits)-1):
-#         for j in range(len(lon_splits)-1):
-#             # Calculate the 1-day averages and save them
-#             directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-#             output_directory = f'/media/yahia/ballena/ABI/Partition/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
-#             process_dates(start_date, end_date, directory, output_directory, (lat_splits[i],lat_splits[i+1]), (lon_splits[j+1],lon_splits[j]), color="viridis")
-
-#     end_time = time.time()
-#     # Calculate and print the elapsed time
-#     elapsed_time = end_time - start_time
-#     print(f"Total execution time: {elapsed_time:.2f} seconds")
+def format_range(value):
+    """ Helper function to format the float values consistently for directory names. """
+    return f"{value:.6f}"
 
 
-# Total execution time: 108.82 seconds
+# #### *process_partition*
 
-# #### Concurrent
-# We should be able to do this faster by using a concurrent program
-
-# In[2]:
+# In[ ]:
 
 
 def process_partition(lat_range, lon_range, start_date, end_date, directory, base_output_directory, color, save_image=True, save_netcdf=False):
-    output_directory = os.path.join(base_output_directory, f'[{lat_range[0]},{lat_range[1]}],[{lon_range[1]},{lon_range[0]}]')
+    formatted_lat_range = f"[{format_range(lat_range[0])},{format_range(lat_range[1])}]"
+    formatted_lon_range = f"[{format_range(lon_range[1])},{format_range(lon_range[0])}]"
+    output_directory = os.path.join(base_output_directory, f"{formatted_lat_range},{formatted_lon_range}")
     process_dates(start_date, end_date, directory, output_directory, lat_range, lon_range, color, save_image=save_image, save_netcdf=save_netcdf)
 
+
+# #### No Overlap
 
 # In[ ]:
 
 
 # if __name__ == '__main__':
-#     lat_splits = [12, 15.5, 19, 22.5, 26, 29.5, 33, 36.5, 40] 
-#     lon_splits = [-12, -23, -34, -45, -56, -67, -78, -89, -100] 
+#     n = 24
+#     lat_splits = np.linspace(12, 40, n+1)
+#     lon_splits = np.linspace(-12, -100, n+1)
+#     lat_splits = lat_splits.tolist()
+#     lon_splits = lon_splits.tolist()
 #     start_date = '20220723'
 #     end_date = '20220724'
 #     directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-#     base_output_directory = '/media/yahia/ballena/ABI/Partition/Averages'
+#     base_output_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages'
 #     color = "viridis"
     
 #     start_time = time.time()
@@ -279,7 +265,7 @@ def process_partition(lat_range, lon_range, start_date, end_date, directory, bas
 #             for j in range(len(lon_splits)-1):
 #                 lat_range = (lat_splits[i], lat_splits[i+1])
 #                 lon_range = (lon_splits[j+1], lon_splits[j])
-#                 tasks.append(executor.submit(process_partition, lat_range, lon_range, start_date, end_date, directory, base_output_directory, color))
+#                 tasks.append(executor.submit(process_partition, lat_range, lon_range, start_date, end_date, directory, base_output_directory, color, True, False))
         
 #         # Optionally, wait for all tasks to complete
 #         for task in tasks:
@@ -291,7 +277,7 @@ def process_partition(lat_range, lon_range, start_date, end_date, directory, bas
 #     print(f"Total execution time: {elapsed_time:.2f} seconds")
 
 
-# Total execution time: 27.74 seconds
+# Total execution time: 200.18 seconds
 
 # In[ ]:
 
@@ -301,9 +287,8 @@ def process_partition(lat_range, lon_range, start_date, end_date, directory, bas
 #     for i in range(len(lat_splits)-1):
 #         for j in range(len(lon_splits)-1):
 #             # Calculate the 1-day averages and save them
-#             directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-#             source_directory = f'/media/yahia/ballena/ABI/Partition/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
-#             destination_directory = f'/media/yahia/ballena/ABI/Partition/Averages_Cropped/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
+#             source_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
+#             destination_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages_Cropped/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
 #             process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
 
 
@@ -315,37 +300,48 @@ def process_partition(lat_range, lon_range, start_date, end_date, directory, bas
 #     for i in range(len(lat_splits)-1):
 #         for j in range(len(lon_splits)-1):
 #             # Calculate the 1-day averages and save them
-#             directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-#             source_directory = f'/media/yahia/ballena/ABI/Partition/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
-#             destination_directory = f'/media/yahia/ballena/ABI/Partition/Averages_Binarized_Bilateral/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
+#             source_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
+#             destination_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages_Binarized_Bilateral/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
 #             process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True, negative=True)
 
 
-# #### Increasing the number of regions
+# #### Overlap
 
 # In[ ]:
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     n = 24
+    overlap_factor = 0.1  # Define the percentage of overlap, e.g., 10%
     lat_splits = np.linspace(12, 40, n+1)
     lon_splits = np.linspace(-12, -100, n+1)
-    lat_splits = lat_splits.tolist()
-    lon_splits = lon_splits.tolist()
     start_date = '20220723'
     end_date = '20220724'
-    directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
-    base_output_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages'
+    directory = '/media/yahia/ballena/CLS/abi-goes-global-hr'
+    base_output_directory = f'/media/yahia/ballena/ABI/Partition_Overlap/n = {n}/Averages'
     color = "viridis"
-    
+
     start_time = time.time()
     tasks = []
-    
+
     with ProcessPoolExecutor() as executor:
         for i in range(len(lat_splits)-1):
             for j in range(len(lon_splits)-1):
-                lat_range = (lat_splits[i], lat_splits[i+1])
-                lon_range = (lon_splits[j+1], lon_splits[j])
+                # Extend each range by a certain overlap factor
+                lat_range_lower = lat_splits[i] - (lat_splits[i+1] - lat_splits[i]) * overlap_factor
+                lat_range_upper = lat_splits[i+1] + (lat_splits[i+1] - lat_splits[i]) * overlap_factor
+                lon_range_lower = lon_splits[j+1] - (lon_splits[j] - lon_splits[j+1]) * overlap_factor
+                lon_range_upper = lon_splits[j] + (lon_splits[j] - lon_splits[j+1]) * overlap_factor
+                
+                # Correct the ranges to not exceed the overall boundaries
+                lat_range_lower = max(lat_range_lower, 12)
+                lat_range_upper = min(lat_range_upper, 40)
+                lon_range_lower = max(lon_range_lower, -100)
+                lon_range_upper = min(lon_range_upper, -12)
+
+                lat_range = (lat_range_lower, lat_range_upper)
+                lon_range = (lon_range_lower, lon_range_upper)
+                
                 tasks.append(executor.submit(process_partition, lat_range, lon_range, start_date, end_date, directory, base_output_directory, color, True, False))
         
         # Optionally, wait for all tasks to complete
@@ -353,23 +349,29 @@ if __name__ == '__main__':
             task.result()
 
     end_time = time.time()
-    # Calculate and print the elapsed time
     elapsed_time = end_time - start_time
     print(f"Total execution time: {elapsed_time:.2f} seconds")
 
-
-# Total execution time: 200.18 seconds
 
 # In[ ]:
 
 
 # Cropped
 if __name__ == '__main__':
+    n = 24
+    lat_splits = np.linspace(12, 40, n+1)
+    lon_splits = np.linspace(-12, -100, n+1)
+    
     for i in range(len(lat_splits)-1):
         for j in range(len(lon_splits)-1):
-            # Calculate the 1-day averages and save them
-            source_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
-            destination_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages_Cropped/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
+            # Format the directory paths using the consistent format
+            lat_range = f"[{format_range(lat_splits[i])},{format_range(lat_splits[i+1])}]"
+            lon_range = f"[{format_range(lon_splits[j+1])},{format_range(lon_splits[j])}]"
+            
+            source_directory = f'/media/yahia/ballena/ABI/Partition_Overlap/n = {n}/Averages/{lat_range},{lon_range}'
+            destination_directory = f'/media/yahia/ballena/ABI/Partition_Overlap/n = {n}/Averages_Cropped/{lat_range},{lon_range}'
+            
+            # Assuming process_directory function exists and performs the cropping
             process_directory(source_directory, destination_directory, threshold=180, bilateral=False, binarize=False)
 
 
@@ -381,14 +383,14 @@ if __name__ == '__main__':
     for i in range(len(lat_splits)-1):
         for j in range(len(lon_splits)-1):
             # Calculate the 1-day averages and save them
-            source_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
-            destination_directory = f'/media/yahia/ballena/ABI/Partition/n = {n}/Averages_Binarized_Bilateral/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
+            source_directory = f'/media/yahia/ballena/ABI/Partition_Overlap/n = {n}/Averages/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
+            destination_directory = f'/media/yahia/ballena/ABI/Partition_Overlap/n = {n}/Averages_Binarized_Bilateral/[{lat_splits[i]},{lat_splits[i+1]}],[{lon_splits[j]},{lon_splits[j+1]}]' 
             process_directory(source_directory, destination_directory, threshold=100, bilateral=True, binarize=True, negative=True)
 
 
 # #### NetCDF Version
 
-# In[3]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -425,7 +427,7 @@ if __name__ == '__main__':
 
 # Total execution time: 351.47 seconds
 
-# In[14]:
+# In[ ]:
 
 
 # Binarized
@@ -438,7 +440,7 @@ if __name__ == '__main__':
             process_directory_netCDF(source_directory, destination_directory, threshold=10, bilateral=False, binarize=True, negative=False)
 
 
-# In[18]:
+# In[ ]:
 
 
 # Binarized_Bilateral
@@ -453,31 +455,140 @@ if __name__ == '__main__':
 
 # ### Atlantic (without partition)
 
-# In[2]:
+# In[ ]:
 
 
 # Global Atlantic (without partition)
 if __name__ == '__main__':
-    start_date = '20220723'
-    end_date = '20220724'
+    start_date = '20220701'
+    end_date = '20220731'
     directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
     output_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages' 
     
     # Calculate the 1-day averages and save them
     process_dates(start_date, end_date, directory, output_directory, color="viridis", save_image=False, save_netcdf=True)
-    
+
+
+# In[ ]:
+
+
+if __name__ == '__main__':
     # Paths
     source_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages' 
     destination_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages_Binarized' 
     
     # Process the directory (binarize the images)
-    process_directory_netCDF(source_directory, destination_directory, threshold=15, bilateral=False, binarize=True, negative=False)
+    process_directory_netCDF(source_directory, destination_directory, threshold=1, bilateral=False, binarize=True, negative=False)
 
 
 # File size: 98 Mb
 
+# ### PWC-Net images
+
 # In[ ]:
 
 
+def netcdf_to_png(input_file_path, output_file_path, variable_name, threshold_value, dpi=300):
+    """
+    Convert a specified variable from a NetCDF file to a binarized PNG image at high resolution.
 
+    Parameters:
+    - input_file_path: Path to the input NetCDF file.
+    - output_file_path: Path where the output PNG image will be saved.
+    - variable_name: The name of the variable in the NetCDF file to plot and save.
+    - threshold_value: Threshold value for binarization.
+    - dpi: Dots per inch for the output image resolution.
+    """
+    # Load the NetCDF file
+    dataset = xr.open_dataset(input_file_path)
+    
+    # Access the variable to plot
+    data = dataset[variable_name].values
+    
+    # Handle potential multiple dimensions (assuming time or level might be present)
+    if data.ndim > 2:
+        data = data[0]  # Take the first slice if it's 3D or higher
+    
+    # Normalize the data to 0-255
+    normalized_data = cv2.normalize(data, None, 0, 255, norm_type=cv2.NORM_MINMAX)
+    
+    # Convert to 8-bit image
+    img_8bit = np.uint8(normalized_data)
+    
+    # Binarize the image
+    _, binarized_img = cv2.threshold(img_8bit, threshold_value, 255, cv2.THRESH_BINARY)
+    
+    # Create a figure with high resolution
+    plt.figure(figsize=(50, 40), dpi=dpi)
+    plt.imshow(binarized_img, cmap='gray', origin='lower')
+    plt.axis('off')  # Turn off the axis
+    plt.savefig(output_file_path, bbox_inches='tight', pad_inches=0)
+    plt.close()
+
+    # Close the dataset
+    dataset.close()
+    print(f"Image saved as {output_file_path}")
+
+
+# In[ ]:
+
+
+if __name__ == "__main__":
+    netcdf_file_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/Filtered/Filtered_algae_distribution_20220723.nc'  # Path to your NetCDF file
+    output_png_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/Filtered/23.png'         # Desired output PNG file path
+    variable_to_plot = 'fai_anomaly'             # Variable name to be plotted
+    
+    netcdf_to_png(netcdf_file_path, output_png_path, variable_to_plot, 127)
+    
+    netcdf_file_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/Filtered/Filtered_algae_distribution_20220724.nc'  # Path to your NetCDF file
+    output_png_path = '/home/yahia/Documents/Jupyter/Sargassum/Images/Test/Filtered/24.png'         # Desired output PNG file path
+    variable_to_plot = 'fai_anomaly'             # Variable name to be plotted
+    
+    netcdf_to_png(netcdf_file_path, output_png_path, variable_to_plot, 127)
+
+
+# ### Filtered Atlantic
+
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Paths
+    source_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages' 
+    destination_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Filtered' 
+    
+    # Process the directory (binarize the images)
+    # Iterate over all files in the source directory
+    for filename in os.listdir(source_directory):
+        if filename.endswith('.nc'):
+            # Original NetCDF file path
+            source_path = os.path.join(source_directory, filename)
+            
+            # New filename with 'Processed' prefix
+            new_filename = 'Filtered_' + filename
+            
+            # Define the output path for the processed NetCDF file
+            dest_path = os.path.join(destination_directory, new_filename)
+            
+            # Process the NetCDF file
+            # First dimension
+            fai_anomaly_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                                  filter_small=False, land_mask=True, coast_mask=False)
+            
+            # Second dimension
+            filtered_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                               filter_small=True, size_threshold=10, land_mask=True, coast_mask=True, coast_threshold=50000)
+        
+            # Extract the main variable from each dataset
+            fai_anomaly_data = fai_anomaly_dataset[list(fai_anomaly_dataset.data_vars)[0]]
+            filtered_data = filtered_dataset[list(filtered_dataset.data_vars)[0]]
+            
+            # Combine both datasets into a new dataset with both variables
+            combined_dataset = xr.Dataset({
+                'fai_anomaly': fai_anomaly_data,
+                'filtered': filtered_data
+            })
+
+            # Saving the file
+            combined_dataset.to_netcdf(dest_path)
 
