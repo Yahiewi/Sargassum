@@ -8,7 +8,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[ ]:
+# In[2]:
 
 
 import xarray as xr
@@ -28,7 +28,7 @@ from concurrent.futures import ProcessPoolExecutor
 # Import the other notebooks without running their cells
 from ii_Data_Manipulation import visualize_4
 from iii_GOES_average import time_list, visualize_aggregate, calculate_median
-from iv_Image_Processing import collect_times, save_aggregate, crop_image, process_dates, binarize_image, bilateral_image, process_directory, save_image, process_dates_2, process_directory_netCDF
+from iv_Image_Processing import *
 
 
 # ## Antilles
@@ -220,7 +220,7 @@ from iv_Image_Processing import collect_times, save_aggregate, crop_image, proce
 # ### Partitioning the Atlantic
 # We're going to divide the Atlantic into $n²$ regions (latitudes: 12°N-40°N, longitudes: 12°W-100°W), then process each region (average the ABI-GOES images, then apply filters) so we can later apply an OF algorithm on them and finally combine the result. We're going to use **concurrent** code to make the image generation process faster.
 
-# In[ ]:
+# In[2]:
 
 
 def format_range(value):
@@ -230,7 +230,7 @@ def format_range(value):
 
 # #### *process_partition*
 
-# In[ ]:
+# In[3]:
 
 
 def process_partition(lat_range, lon_range, start_date, end_date, directory, base_output_directory, color, save_image=True, save_netcdf=False):
@@ -307,7 +307,7 @@ def process_partition(lat_range, lon_range, start_date, end_date, directory, bas
 
 # #### Overlap
 
-# In[ ]:
+# In[12]:
 
 
 if __name__ == "__main__":
@@ -353,7 +353,7 @@ if __name__ == "__main__":
     print(f"Total execution time: {elapsed_time:.2f} seconds")
 
 
-# In[ ]:
+# In[4]:
 
 
 # Cropped
@@ -390,7 +390,7 @@ if __name__ == '__main__':
 
 # #### NetCDF Version
 
-# In[ ]:
+# In[3]:
 
 
 if __name__ == '__main__':
@@ -427,7 +427,7 @@ if __name__ == '__main__':
 
 # Total execution time: 351.47 seconds
 
-# In[ ]:
+# In[14]:
 
 
 # Binarized
@@ -440,7 +440,7 @@ if __name__ == '__main__':
             process_directory_netCDF(source_directory, destination_directory, threshold=10, bilateral=False, binarize=True, negative=False)
 
 
-# In[ ]:
+# In[18]:
 
 
 # Binarized_Bilateral
@@ -455,7 +455,7 @@ if __name__ == '__main__':
 
 # ### Atlantic (without partition)
 
-# In[ ]:
+# In[1]:
 
 
 # Global Atlantic (without partition)
@@ -469,7 +469,7 @@ if __name__ == '__main__':
     process_dates(start_date, end_date, directory, output_directory, color="viridis", save_image=False, save_netcdf=True)
 
 
-# In[ ]:
+# In[8]:
 
 
 if __name__ == '__main__':
@@ -485,7 +485,7 @@ if __name__ == '__main__':
 
 # ### PWC-Net images
 
-# In[ ]:
+# In[22]:
 
 
 def netcdf_to_png(input_file_path, output_file_path, variable_name, threshold_value, dpi=300):
@@ -530,7 +530,7 @@ def netcdf_to_png(input_file_path, output_file_path, variable_name, threshold_va
     print(f"Image saved as {output_file_path}")
 
 
-# In[ ]:
+# In[23]:
 
 
 if __name__ == "__main__":
@@ -549,13 +549,123 @@ if __name__ == "__main__":
 
 # ### Filtered Atlantic
 
-# In[ ]:
+# #### *process_file*
+
+# In[3]:
+
+
+def process_file(filename, source_directory, destination_directory):
+    """
+    Process a single NetCDF file and save the processed result.
+    """
+    source_path = os.path.join(source_directory, filename)
+    new_filename = 'Filtered_' + filename
+    dest_path = os.path.join(destination_directory, new_filename)
+    
+    # Assume process_netCDF is a function you've defined elsewhere
+    fai_anomaly_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                                         filter_small=False, land_mask=False, coast_mask=False)
+    
+    filtered_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                                      filter_small=False, size_threshold=10, land_mask=True, coast_mask=True, 
+                                      coast_threshold=50000, adaptive_small=True, base_threshold=15, higher_threshold=10000, 
+                                      latitude_limit=30)
+    
+    fai_anomaly_data = fai_anomaly_dataset[list(fai_anomaly_dataset.data_vars)[0]]
+    filtered_data = filtered_dataset[list(filtered_dataset.data_vars)[0]]
+    
+    combined_dataset = xr.Dataset({
+        'fai_anomaly': fai_anomaly_data,
+        'filtered': filtered_data
+    })
+    
+    combined_dataset.to_netcdf(dest_path)
+
+
+# In[4]:
+
+
+if __name__ == "__main__":
+    source_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages'
+    destination_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Filtered'
+    
+    # Get all .nc files in the source directory
+    filenames = [f for f in os.listdir(source_directory) if f.endswith('.nc')]
+    
+    # Use ProcessPoolExecutor to process files in parallel
+    with ProcessPoolExecutor(max_workers=4) as executor:
+        # Map the processing function to each file
+        futures = [executor.submit(process_file, filename, source_directory, destination_directory) for filename in filenames]
+        
+        # Optionally collect results or handle exceptions
+        for future in futures:
+            try:
+                result = future.result()  # Wait for each future to complete if needed
+            except Exception as e:
+                print(f"Error processing file: {str(e)}")
+
+
+# ### Sub-daily Atlantic
+# The function process_dates by default averages the images over a day. We need to modify it first before proceeding.
+
+# In[6]:
+
+
+def process_dates_modified(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, 
+                  color="viridis", save_image=True, save_netcdf=False, start_time="00:00", end_time="23:59"):
+    # Create the output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Convert the start and end dates from strings to datetime objects
+    current_date = datetime.strptime(start_date, '%Y%m%d')
+    end_date = datetime.strptime(end_date, '%Y%m%d')
+    
+    while current_date <= end_date:
+        date_str = current_date.strftime('%Y%m%d')
+        
+        # Formulate the full datetime strings for the start and end times on the current date
+        full_start_time = datetime.strptime(f"{date_str}_{start_time}", '%Y%m%d_%H:%M')
+        full_end_time = datetime.strptime(f"{date_str}_{end_time}", '%Y%m%d_%H:%M')
+
+        # Generate time intervals within the specified start and end times
+        times_for_day = time_list(full_start_time, full_end_time, 10)  # 10-minute intervals
+
+        # Calculate the median distribution of the specified variable (e.g., algae) based on the list of timestamps
+        median_distribution = calculate_median(times_for_day, lat_range, lon_range)
+        
+        # Prepare the output file paths
+        output_image_path = os.path.join(output_dir, f'algae_distribution_{date_str}.png') if save_image else None
+        output_netcdf_path = os.path.join(output_dir, f'algae_distribution_{date_str}.nc') if save_netcdf else None
+        
+        # Save visualizations and data
+        save_aggregate(median_distribution, lat_range, lon_range, color=color, 
+                       output_filepath=output_image_path, netcdf_filepath=output_netcdf_path, display=False)
+        
+        # Increment the current date by one day
+        current_date += timedelta(days=1)
+
+
+# In[8]:
+
+
+# Global Atlantic (without partition)
+if __name__ == '__main__':
+    start_date = '20220723'
+    end_date = '20220723'
+    directory = '/media/yahia/ballena/CLS/abi-goes-global-hr' 
+    output_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages_4h' 
+    
+    # Calculate the 1-day averages and save them
+    process_dates_modified(start_date, end_date, directory, output_directory, color="viridis", save_image=False, save_netcdf=True, start_time="13:00", end_time="17:00")
+
+
+# In[11]:
 
 
 if __name__ == '__main__':
     # Paths
-    source_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages' 
-    destination_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Filtered' 
+    source_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages_4h' 
+    destination_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Filtered_4h' 
     
     # Process the directory (binarize the images)
     # Iterate over all files in the source directory
@@ -573,19 +683,25 @@ if __name__ == '__main__':
             # Process the NetCDF file
             # First dimension
             fai_anomaly_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                                  filter_small=False, land_mask=False, coast_mask=False)
+
+            # Second dimension
+            masked_land = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
                                   filter_small=False, land_mask=True, coast_mask=False)
             
-            # Second dimension
+            # Third dimension
             filtered_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
                                filter_small=True, size_threshold=10, land_mask=True, coast_mask=True, coast_threshold=50000)
         
             # Extract the main variable from each dataset
             fai_anomaly_data = fai_anomaly_dataset[list(fai_anomaly_dataset.data_vars)[0]]
+            masked_land = masked_land[list(masked_land.data_vars)[0]]
             filtered_data = filtered_dataset[list(filtered_dataset.data_vars)[0]]
             
             # Combine both datasets into a new dataset with both variables
             combined_dataset = xr.Dataset({
                 'fai_anomaly': fai_anomaly_data,
+                'masked_land': masked_land,
                 'filtered': filtered_data
             })
 

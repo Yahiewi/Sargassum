@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[ ]:
+# In[1]:
 
 
 import xarray as xr
@@ -43,7 +43,7 @@ from v_i_OF_Functions import *
 
 # ### ~*calculate_velocity*~
 
-# In[ ]:
+# In[5]:
 
 
 def calculate_velocity(flow, resolution_km=1, time_seconds=24*3600):
@@ -60,7 +60,7 @@ def calculate_velocity(flow, resolution_km=1, time_seconds=24*3600):
 
 # ### *visualize_velocity*
 
-# In[ ]:
+# In[6]:
 
 
 def visualize_velocity(velocity, prev_img):
@@ -72,7 +72,7 @@ def visualize_velocity(velocity, prev_img):
     plt.show()
 
 
-# In[ ]:
+# In[7]:
 
 
 # Zoom
@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
 # ### *segment_aggregations*
 
-# In[ ]:
+# In[8]:
 
 
 def segment_aggregations(mask):
@@ -113,7 +113,7 @@ def segment_aggregations(mask):
 
 # ### *calculate_average_vectors*
 
-# In[ ]:
+# In[9]:
 
 
 def calculate_average_vectors(flow, contours):
@@ -133,7 +133,7 @@ def calculate_average_vectors(flow, contours):
 # ### *haversine*
 # This function was tested and returns correct results (distance in km)
 
-# In[ ]:
+# In[10]:
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -156,7 +156,7 @@ def haversine(lon1, lat1, lon2, lat2):
 # ### *calculate_area_haversine*
 # Since the distances are not uniform in the image we can't directly use **cv2.contourArea** to calculate the area as this function calculates it in terms of pixels.
 
-# In[ ]:
+# In[11]:
 
 
 def calculate_area_haversine(contour, lons, lats):
@@ -182,7 +182,7 @@ def calculate_area_haversine(contour, lons, lats):
 
 # ### *generate_lat_lon_arrays*
 
-# In[ ]:
+# In[12]:
 
 
 def generate_lat_lon_arrays(lat_range, lon_range, image_shape):
@@ -198,7 +198,7 @@ def generate_lat_lon_arrays(lat_range, lon_range, image_shape):
 # ### *calculate_velocity_and_angles*
 # A generalization of the calculate_velocity function defined above.
 
-# In[ ]:
+# In[13]:
 
 
 def calculate_velocity_and_angle(vector, lon1, lat1, lon2, lat2, time_seconds=24*3600):
@@ -220,7 +220,7 @@ def calculate_velocity_and_angle(vector, lon1, lat1, lon2, lat2, time_seconds=24
 # 
 # **Right now, this function returns absurd results**.
 
-# In[ ]:
+# In[14]:
 
 
 def calculate_angular_velocity(flow, contour, centroid, resolution_km=1, time_seconds=24*3600, units='degrees'):
@@ -253,7 +253,7 @@ def calculate_angular_velocity(flow, contour, centroid, resolution_km=1, time_se
 
 # ### *plot_aggregations_with_vectors*
 
-# In[ ]:
+# In[15]:
 
 
 def plot_aggregations_with_vectors(img, contours, avg_vectors):
@@ -282,7 +282,7 @@ def plot_aggregations_with_vectors(img, contours, avg_vectors):
     plt.show()
 
 
-# In[ ]:
+# In[16]:
 
 
 if __name__ == "__main__":
@@ -311,7 +311,7 @@ if __name__ == "__main__":
 
 # ### *plot_interactive_contours_with_vectors*
 
-# In[ ]:
+# In[17]:
 
 
 def plot_interactive_contours_with_vectors(img, contours, avg_vectors, flow, lons, lats, grid_step=10):
@@ -387,7 +387,7 @@ def plot_interactive_contours_with_vectors(img, contours, avg_vectors, flow, lon
     fig.show()
 
 
-# In[ ]:
+# In[18]:
 
 
 if __name__ == "__main__":
@@ -425,37 +425,4 @@ if __name__ == "__main__":
 
 
 
-
-
-# In[ ]:
-
-
-import xarray as xr
-import io
-import os
-import cv2
-import imageio
-import plotly.graph_objects as go
-import mpld3
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-import matplotlib.animation as animation
-import numpy as np
-import cartopy.crs as ccrs
-import cartopy.feature as cfeature
-from datetime import datetime, timedelta
-from IPython.display import Image, display, HTML
-from PIL import Image as PILImage
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from plotly.subplots import make_subplots
-from geopy.distance import geodesic
-from math import radians, sin, cos, sqrt, atan2
-import matplotlib as mpl
-# Increase the embed limit for animations
-mpl.rcParams['animation.embed_limit'] = 50  # Increase the limit to 50 MB
-
-# Import the other notebooks without running their cells
-from ii_Data_Manipulation import visualize_4
-from iii_GOES_average import time_list, visualize_aggregate, calculate_median
-from iv_Image_Processing import collect_times, crop_image, save_aggregate, binarize_image, bilateral_image, process_dates, process_directory
 
