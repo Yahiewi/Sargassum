@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[3]:
+# In[ ]:
 
 
 import xarray as xr
@@ -40,7 +40,7 @@ from v_i_OF_Functions import *
 
 # ## *compare_flows*
 
-# In[4]:
+# In[ ]:
 
 
 def compare_flows(my_dataset_path, output_path, glorys_dataset_path='/media/yahia/ballena/GLORYS12_SARG/glorys12_1d_2022.nc', comparison_date='2022-07-23'):
@@ -93,7 +93,7 @@ def compare_flows(my_dataset_path, output_path, glorys_dataset_path='/media/yahi
     diff_dataset.to_netcdf(output_path)
 
 
-# In[5]:
+# In[ ]:
 
 
 # DeepFlow
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     )
 
 
-# In[21]:
+# In[ ]:
 
 
 # Farneback
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 # ## *compare_flows_scatter*
 # Scatter plot
 
-# In[6]:
+# In[ ]:
 
 
 def compare_flows_scatter(my_dataset_path, glorys_dataset_path, comparison_date='2022-07-23', 
@@ -201,7 +201,7 @@ def compare_flows_scatter(my_dataset_path, glorys_dataset_path, comparison_date=
 
 # ## DeepFlow
 
-# In[7]:
+# In[ ]:
 
 
 # DeepFlow
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     )
 
 
-# In[8]:
+# In[ ]:
 
 
 # Masked DeepFlow
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     )
 
 
-# In[9]:
+# In[ ]:
 
 
 # Filtered DeepFlow
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
 # ## DeepFlow (Masked)
 
-# In[10]:
+# In[ ]:
 
 
 # DeepFlow
@@ -249,7 +249,7 @@ if __name__ == "__main__":
     )
 
 
-# In[11]:
+# In[ ]:
 
 
 # Masked DeepFlow
@@ -261,7 +261,7 @@ if __name__ == "__main__":
     )
 
 
-# In[12]:
+# In[ ]:
 
 
 # Filtered DeepFlow
@@ -275,7 +275,7 @@ if __name__ == "__main__":
 
 # ## Farneback
 
-# In[13]:
+# In[ ]:
 
 
 # Farneback
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     )
 
 
-# In[14]:
+# In[ ]:
 
 
 # Masked Farneback
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     )
 
 
-# In[15]:
+# In[ ]:
 
 
 # Filtered Farneback
@@ -312,7 +312,7 @@ if __name__ == "__main__":
 
 # ## Farneback (Masked)
 
-# In[16]:
+# In[ ]:
 
 
 # Farneback
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     )
 
 
-# In[17]:
+# In[ ]:
 
 
 # Masked Farneback
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     )
 
 
-# In[18]:
+# In[ ]:
 
 
 # Filtered Farneback
@@ -354,7 +354,7 @@ if __name__ == "__main__":
 
 # #### *overlay_detections*
 
-# In[4]:
+# In[ ]:
 
 
 def overlay_detections(flow_data_path, detection_data_path, output_path):
@@ -382,7 +382,7 @@ def overlay_detections(flow_data_path, detection_data_path, output_path):
     print(f"Modified flow data saved to {output_path}")
 
 
-# In[30]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -413,7 +413,7 @@ if __name__ == '__main__':
 
 # #### *overlay_png*
 
-# In[5]:
+# In[ ]:
 
 
 def overlay_png(file_path, output_path, quiver_scale=100, quiver_step=50):
@@ -462,7 +462,7 @@ def overlay_png(file_path, output_path, quiver_scale=100, quiver_step=50):
     plt.close(fig)  # Close the figure to free resources
 
 
-# In[6]:
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -471,6 +471,161 @@ if __name__ == "__main__":
 
 
 # ## Prediction
+# Similar to the warp function in other notebooks, we're going to try to reproduce the second day using the calculated flow.
+
+# ### *predict*
+
+# In[ ]:
+
+
+def predict(file_path, output_path, time_interval=86400):
+    # Load the NetCDF data
+    ds = xr.open_dataset(file_path)
+    
+    # Calculate pixel distances
+    latitudes = ds.latitude.values
+    longitudes = ds.longitude.values
+    d_lat_m = haversine(longitudes[0], latitudes[0], longitudes[0], latitudes[1])*1000
+    d_lon_m = haversine(longitudes[0], latitudes[0], longitudes[1], latitudes[0])*1000
+    
+    # Convert flow from m/s back to pixel displacement
+    flow_u_pixels = ds['flow_u'].values * (time_interval / d_lon_m)
+    flow_v_pixels = ds['flow_v'].values * (time_interval / d_lat_m)
+    flow_u_f_pixels = ds['flow_u_f'].values * (time_interval / d_lon_m)
+    flow_v_f_pixels = ds['flow_v_f'].values * (time_interval / d_lat_m)
+
+    # Initialize prediction arrays
+    prediction = np.zeros_like(ds['fai_anomaly'].values)
+    prediction_f = np.zeros_like(ds['filtered'].values)
+    
+    # Function to update the position based on flow vectors
+    def update_position(data, flow_u, flow_v):
+        updated_data = np.zeros_like(data)
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                if data[i, j] != 0:
+                    new_i = int(round(i + flow_v[i, j]))
+                    new_j = int(round(j + flow_u[i, j]))
+                    if 0 <= new_i < data.shape[0] and 0 <= new_j < data.shape[1]:
+                        updated_data[new_i, new_j] = 255
+        return updated_data
+
+    # Apply flow data to update positions
+    prediction = update_position(ds['fai_anomaly'].values, flow_u_pixels, flow_v_pixels)
+    prediction_f = update_position(ds['filtered'].values, flow_u_f_pixels, flow_v_f_pixels)
+    
+    # Create a new dataset to hold the predictions
+    predicted_ds = xr.Dataset({
+        'prediction': (['latitude', 'longitude'], prediction),
+        'prediction_f': (['latitude', 'longitude'], prediction_f)
+    }, coords={'latitude': ds.latitude, 'longitude': ds.longitude})
+
+    # Save the dataset
+    predicted_ds.to_netcdf(output_path)
+
+
+# ### *backtrack*
+# We use the result of the *predict* function to recreate the first day and validate this function.
+
+# In[ ]:
+
+
+def backtrack(file_path, predicted_file_path, output_path, time_interval=86400):
+    # Load the NetCDF data for original and predicted
+    ds_original = xr.open_dataset(file_path)
+    ds_predicted = xr.open_dataset(predicted_file_path)
+    
+    # Calculate pixel distances
+    latitudes = ds_original.latitude.values
+    longitudes = ds_original.longitude.values
+    d_lat_m = haversine(longitudes[0], latitudes[0], longitudes[0], latitudes[1])
+    d_lon_m = haversine(longitudes[0], latitudes[0], longitudes[1], latitudes[0])
+    
+    # Convert flow from m/s back to pixel displacement (using negative for backtracking)
+    flow_u_pixels = -ds_original['flow_u'].values * (time_interval / d_lon_m)
+    flow_v_pixels = -ds_original['flow_v'].values * (time_interval / d_lat_m)
+    flow_u_f_pixels = -ds_original['flow_u_f'].values * (time_interval / d_lon_m)
+    flow_v_f_pixels = -ds_original['flow_v_f'].values * (time_interval / d_lat_m)
+
+    # Initialize backtracked prediction arrays
+    backtracked_prediction = np.zeros_like(ds_original['fai_anomaly'].values)
+    backtracked_prediction_f = np.zeros_like(ds_original['filtered'].values)
+    
+    # Function to update the position based on flow vectors
+    def update_position(data, flow_u, flow_v):
+        backtracked_data = np.zeros_like(data)
+        for i in range(data.shape[0]):
+            for j in range(data.shape[1]):
+                if data[i, j] != 0:
+                    new_i = int(round(i + flow_v[i, j]))
+                    new_j = int(round(j + flow_u[i, j]))
+                    if 0 <= new_i < data.shape[0] and 0 <= new_j < data.shape[1]:
+                        backtracked_data[new_i, new_j] = 255
+        return backtracked_data
+
+    # Apply reverse flow data to update positions
+    backtracked_prediction = update_position(ds_predicted['prediction'].values, flow_u_pixels, flow_v_pixels)
+    backtracked_prediction_f = update_position(ds_predicted['prediction_f'].values, flow_u_f_pixels, flow_v_f_pixels)
+    
+    # Create a new dataset to hold the backtracked predictions
+    backtracked_ds = xr.Dataset({
+        'backtracked_prediction': (['latitude', 'longitude'], backtracked_prediction),
+        'backtracked_prediction_f': (['latitude', 'longitude'], backtracked_prediction_f)
+    }, coords={'latitude': ds_original.latitude, 'longitude': ds_original.longitude})
+
+    # Save the dataset
+    backtracked_ds.to_netcdf(output_path)
+
+
+# In[ ]:
+
+
+# DeepFlow
+
+
+# In[ ]:
+
+
+if __name__ == "__main__":
+    file_path = "/media/yahia/ballena/Flow/DeepFlow_Masked/Masked_DeepFlow_Filtered_algae_distribution_20220723.nc"
+    output_path = "/home/yahia/Documents/Jupyter/Sargassum/Images/Test/predict.nc"
+    predict(file_path, output_path)
+
+
+# In[ ]:
+
+
+if __name__ == "__main__":
+    file_path = "/media/yahia/ballena/Flow/DeepFlow_Masked/Masked_DeepFlow_Filtered_algae_distribution_20220723.nc"
+    predicted_file_path = "/home/yahia/Documents/Jupyter/Sargassum/Images/Test/predict.nc"
+    output_path = "/home/yahia/Documents/Jupyter/Sargassum/Images/Test/backtrack.nc"
+    backtrack(file_path, predicted_file_path, output_path)
+
+
+# In[ ]:
+
+
+# Farneback
+
+
+# In[ ]:
+
+
+if __name__ == "__main__":
+    file_path = "/media/yahia/ballena/Flow/Farneback_Masked/Masked_Farneback_Filtered_algae_distribution_20220723.nc"
+    output_path = "/home/yahia/Documents/Jupyter/Sargassum/Images/Test/predict_farneback.nc"
+    predict(file_path, output_path)
+
+
+# In[ ]:
+
+
+if __name__ == "__main__":
+    file_path = "/media/yahia/ballena/Flow/Farneback_Masked/Masked_Farneback_Filtered_algae_distribution_20220723.nc"
+    predicted_file_path = "/home/yahia/Documents/Jupyter/Sargassum/Images/Test/predict_farneback.nc"
+    output_path = "/home/yahia/Documents/Jupyter/Sargassum/Images/Test/backtrack_farneback.nc"
+    backtrack(file_path, predicted_file_path, output_path)
+
 
 # In[ ]:
 

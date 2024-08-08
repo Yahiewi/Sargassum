@@ -8,7 +8,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[2]:
+# In[ ]:
 
 
 import xarray as xr
@@ -220,7 +220,7 @@ from iv_Image_Processing import *
 # ### Partitioning the Atlantic
 # We're going to divide the Atlantic into $n²$ regions (latitudes: 12°N-40°N, longitudes: 12°W-100°W), then process each region (average the ABI-GOES images, then apply filters) so we can later apply an OF algorithm on them and finally combine the result. We're going to use **concurrent** code to make the image generation process faster.
 
-# In[2]:
+# In[ ]:
 
 
 def format_range(value):
@@ -230,7 +230,7 @@ def format_range(value):
 
 # #### *process_partition*
 
-# In[3]:
+# In[ ]:
 
 
 def process_partition(lat_range, lon_range, start_date, end_date, directory, base_output_directory, color, save_image=True, save_netcdf=False):
@@ -307,7 +307,7 @@ def process_partition(lat_range, lon_range, start_date, end_date, directory, bas
 
 # #### Overlap
 
-# In[12]:
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -353,7 +353,7 @@ if __name__ == "__main__":
     print(f"Total execution time: {elapsed_time:.2f} seconds")
 
 
-# In[4]:
+# In[ ]:
 
 
 # Cropped
@@ -390,7 +390,7 @@ if __name__ == '__main__':
 
 # #### NetCDF Version
 
-# In[3]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -427,7 +427,7 @@ if __name__ == '__main__':
 
 # Total execution time: 351.47 seconds
 
-# In[14]:
+# In[ ]:
 
 
 # Binarized
@@ -440,7 +440,7 @@ if __name__ == '__main__':
             process_directory_netCDF(source_directory, destination_directory, threshold=10, bilateral=False, binarize=True, negative=False)
 
 
-# In[18]:
+# In[ ]:
 
 
 # Binarized_Bilateral
@@ -455,7 +455,7 @@ if __name__ == '__main__':
 
 # ### Atlantic (without partition)
 
-# In[1]:
+# In[ ]:
 
 
 # Global Atlantic (without partition)
@@ -469,7 +469,7 @@ if __name__ == '__main__':
     process_dates(start_date, end_date, directory, output_directory, color="viridis", save_image=False, save_netcdf=True)
 
 
-# In[8]:
+# In[ ]:
 
 
 if __name__ == '__main__':
@@ -485,7 +485,7 @@ if __name__ == '__main__':
 
 # ### PWC-Net images
 
-# In[22]:
+# In[ ]:
 
 
 def netcdf_to_png(input_file_path, output_file_path, variable_name, threshold_value, dpi=300):
@@ -530,7 +530,7 @@ def netcdf_to_png(input_file_path, output_file_path, variable_name, threshold_va
     print(f"Image saved as {output_file_path}")
 
 
-# In[23]:
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -551,7 +551,7 @@ if __name__ == "__main__":
 
 # #### *process_file*
 
-# In[3]:
+# In[ ]:
 
 
 def process_file(filename, source_directory, destination_directory):
@@ -562,27 +562,79 @@ def process_file(filename, source_directory, destination_directory):
     new_filename = 'Filtered_' + filename
     dest_path = os.path.join(destination_directory, new_filename)
     
-    # Assume process_netCDF is a function you've defined elsewhere
-    fai_anomaly_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+    # Process the NetCDF file
+    fai_anomaly_result = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, negative=False, 
                                          filter_small=False, land_mask=False, coast_mask=False)
     
-    filtered_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+    filtered_result = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, negative=False, 
                                       filter_small=False, size_threshold=10, land_mask=True, coast_mask=True, 
                                       coast_threshold=50000, adaptive_small=True, base_threshold=15, higher_threshold=10000, 
                                       latitude_limit=30)
     
-    fai_anomaly_data = fai_anomaly_dataset[list(fai_anomaly_dataset.data_vars)[0]]
-    filtered_data = filtered_dataset[list(filtered_dataset.data_vars)[0]]
-    
-    combined_dataset = xr.Dataset({
-        'fai_anomaly': fai_anomaly_data,
-        'filtered': filtered_data
-    })
-    
+    # Convert DataArray to Dataset if needed
+    if isinstance(fai_anomaly_result, xr.DataArray):
+        fai_anomaly_result = fai_anomaly_result.to_dataset(name='fai_anomaly')
+    if isinstance(filtered_result, xr.DataArray):
+        filtered_result = filtered_result.to_dataset(name='filtered')
+
+    # Merge datasets
+    combined_dataset = xr.merge([fai_anomaly_result, filtered_result])
+
+    # Save the combined dataset
     combined_dataset.to_netcdf(dest_path)
 
 
-# In[4]:
+# In[ ]:
+
+
+if __name__ == '__main__':
+    # Paths
+    source_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Averages' 
+    destination_directory = '/media/yahia/ballena/ABI/NetCDF/Atlantic/Filtered' 
+    
+    # Process the directory (binarize the images)
+    # Iterate over all files in the source directory
+    for filename in os.listdir(source_directory):
+        if filename.endswith('.nc'):
+            # Original NetCDF file path
+            source_path = os.path.join(source_directory, filename)
+            
+            # New filename with 'Processed' prefix
+            new_filename = 'Filtered_' + filename
+            
+            # Define the output path for the processed NetCDF file
+            dest_path = os.path.join(destination_directory, new_filename)
+            
+            # Process the NetCDF file
+            # First dimension
+            fai_anomaly_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                                  filter_small=False, land_mask=False, coast_mask=False)
+
+            # Second dimension
+            masked_land = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                                  filter_small=False, land_mask=True, coast_mask=False)
+            
+            # Third dimension
+            filtered_dataset = process_netCDF(source_path, threshold=1, bilateral=False, binarize=True, crop=False, negative=False, 
+                               filter_small=True, size_threshold=10, land_mask=True, coast_mask=True, coast_threshold=50000)
+        
+            # Extract the main variable from each dataset
+            fai_anomaly_data = fai_anomaly_dataset[list(fai_anomaly_dataset.data_vars)[0]]
+            masked_land = masked_land[list(masked_land.data_vars)[0]]
+            filtered_data = filtered_dataset[list(filtered_dataset.data_vars)[0]]
+            
+            # Combine both datasets into a new dataset with both variables
+            combined_dataset = xr.Dataset({
+                'fai_anomaly': fai_anomaly_data,
+                'masked_land': masked_land,
+                'filtered': filtered_data
+            })
+
+            # Saving the file
+            combined_dataset.to_netcdf(dest_path)
+
+
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -593,7 +645,7 @@ if __name__ == "__main__":
     filenames = [f for f in os.listdir(source_directory) if f.endswith('.nc')]
     
     # Use ProcessPoolExecutor to process files in parallel
-    with ProcessPoolExecutor(max_workers=4) as executor:
+    with ProcessPoolExecutor(max_workers=8) as executor:
         # Map the processing function to each file
         futures = [executor.submit(process_file, filename, source_directory, destination_directory) for filename in filenames]
         
@@ -608,7 +660,7 @@ if __name__ == "__main__":
 # ### Sub-daily Atlantic
 # The function process_dates by default averages the images over a day. We need to modify it first before proceeding.
 
-# In[6]:
+# In[ ]:
 
 
 def process_dates_modified(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, 
@@ -645,7 +697,7 @@ def process_dates_modified(start_date, end_date, directory, output_dir, lat_rang
         current_date += timedelta(days=1)
 
 
-# In[8]:
+# In[ ]:
 
 
 # Global Atlantic (without partition)
@@ -659,7 +711,7 @@ if __name__ == '__main__':
     process_dates_modified(start_date, end_date, directory, output_directory, color="viridis", save_image=False, save_netcdf=True, start_time="13:00", end_time="17:00")
 
 
-# In[11]:
+# In[ ]:
 
 
 if __name__ == '__main__':

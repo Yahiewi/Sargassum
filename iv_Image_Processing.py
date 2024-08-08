@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -35,7 +35,7 @@ from iii_GOES_average import time_list, visualize_aggregate, calculate_median, s
 
 # ### *collect_times*
 
-# In[2]:
+# In[ ]:
 
 
 def collect_times(date, directory):
@@ -51,7 +51,7 @@ def collect_times(date, directory):
 # ### *save_aggregate*
 # Because we've encountered bugs and stack overflow when we tried to modify the function of notebook 3 by adding an optional parameter (**output_filepath**=None), which if specified saves the figure instead of showing it (and removes the legend), we've decided instead to write a new function here **save_aggregate** that can also display the image.
 
-# In[3]:
+# In[ ]:
 
 
 def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridis", vmax=0.001, threshold=0.0001, output_filepath=None, netcdf_filepath=None, filter_clouds=True, display=False):
@@ -115,7 +115,7 @@ def save_aggregate(aggregate_data, lat_range=None, lon_range=None, color="viridi
 
 # ### *process_dates*
 
-# In[4]:
+# In[ ]:
 
 
 def process_dates(start_date, end_date, directory, output_dir, lat_range=None, lon_range=None, color="viridis", save_image=True, save_netcdf=False):
@@ -155,7 +155,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
         current_date += timedelta(days=1)
 
 
-# In[5]:
+# In[ ]:
 
 
 # start_date = '20220723'
@@ -174,7 +174,7 @@ def process_dates(start_date, end_date, directory, output_dir, lat_range=None, l
 # ### *plot_xarray*
 # Takes as input an xarray and outputs an interactive graph where you can hover over the pixels to get the corresponding value. Useful for debugging and testing.
 
-# In[72]:
+# In[ ]:
 
 
 def plot_xarray(xarray_dataset, variable_name="fai_anomaly", title='Interactive Plot', xlabel='Longitude Index', ylabel='Latitude Index', cmap='viridis'):
@@ -221,7 +221,7 @@ def plot_xarray(xarray_dataset, variable_name="fai_anomaly", title='Interactive 
 
 # #### *display_image_mpl*
 
-# In[1]:
+# In[ ]:
 
 
 def display_image_mpl(image_array, scale=1):
@@ -255,7 +255,7 @@ def display_image_mpl(image_array, scale=1):
 # #### *crop_image*
 # Let's write a function to crop images so as to remove the white space from the figure.
 
-# In[6]:
+# In[ ]:
 
 
 def crop_image(image):
@@ -289,7 +289,7 @@ def crop_image(image):
 # #### *binarize_image*
 # Binarizing the images (indicating the presence of algae by absolute black and the rest by white) might be beneficial for our Optical Flow algorithms.
 
-# In[2]:
+# In[ ]:
 
 
 def binarize_image(image, threshold):
@@ -311,7 +311,7 @@ def binarize_image(image, threshold):
 
 # #### *bilateral_image*
 
-# In[22]:
+# In[ ]:
 
 
 def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
@@ -347,7 +347,7 @@ def bilateral_image(image, diameter=9, sigmaColor=75, sigmaSpace=75):
 # 
 # **The smaller the threshold is, the slower it is. No longer.**
 
-# In[3]:
+# In[ ]:
 
 
 def filter_by_size(image, size_threshold):
@@ -364,7 +364,7 @@ def filter_by_size(image, size_threshold):
 # #### *adaptive_filter_by_size*
 # Applies a different size threshold above a certain latitude (usually 30° N). This is done to filter more detections which are probably noise (in the north) and not filter out too much the the areas where there are genuine detections.
 
-# In[40]:
+# In[ ]:
 
 
 def adaptive_filter_by_size(dataset, base_threshold, higher_threshold, latitude_limit=30):
@@ -418,7 +418,7 @@ def adaptive_filter_by_size(dataset, base_threshold, higher_threshold, latitude_
 # #### *adaptive_filter*
 # Applies a filter based on local densities (the areas with more detections will be filtered less).
 
-# In[44]:
+# In[ ]:
 
 
 def adaptive_filter(image, adaptive_base_threshold, window_size=10, density_scale_factor=1.5):
@@ -469,7 +469,7 @@ def adaptive_filter(image, adaptive_base_threshold, window_size=10, density_scal
 # 
 # We can change the kernel_size as well as the kernel_shape. Increasing the kernel_size, increase the "aggression" of the filter while changing the kernel_shape didn't make much of a visible difference.
 
-# In[8]:
+# In[ ]:
 
 
 def opening(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
@@ -491,7 +491,7 @@ def opening(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
     return opened_image
 
 
-# In[25]:
+# In[ ]:
 
 
 # # Opening Test
@@ -508,7 +508,7 @@ def opening(image, kernel_size=3, kernel_shape=cv2.MORPH_RECT):
 
 # #### ~*median_filter*~
 
-# In[17]:
+# In[ ]:
 
 
 def median_filter(image, kernel_size=3):
@@ -537,7 +537,7 @@ def median_filter(image, kernel_size=3):
 
 # The following function is used to create a NetCDF that will be used for mask_coast. (One-time use)
 
-# In[110]:
+# In[ ]:
 
 
 # def create_reduced_netcdf(input_file, output_file):
@@ -573,7 +573,7 @@ def median_filter(image, kernel_size=3):
 # #### *mask_coast*
 # Function to filter detections that are close to the coast. Unlike the other functions, this one takes in a dataset as input not an image.
 
-# In[7]:
+# In[ ]:
 
 
 def mask_coast(fai_dataset, distcoast_dataset_path='/home/yahia/Documents/Jupyter/Sargassum/Utilities/distcoast.nc', 
@@ -619,7 +619,7 @@ def mask_coast(fai_dataset, distcoast_dataset_path='/home/yahia/Documents/Jupyte
     return masked_fai_dataset
 
 
-# In[194]:
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -635,7 +635,7 @@ if __name__ == "__main__":
 # Takes as input a netCDF file and applies the wanted filters to it and outputs another netCDF file.
 # **Optimize the mask_coast part** (when both land_mask and coast_mask are false the function mask_coast will still be called but do nothing).
 
-# In[48]:
+# In[ ]:
 
 
 def process_netCDF(
@@ -692,6 +692,9 @@ def process_netCDF(
 
     # Reconstruct dataset with processed data for applying coastal mask
     processed_dataset = xr.Dataset({variable_name: processed_data})
+
+    if adaptive_small:
+        processed_dataset = adaptive_filter_by_size(processed_dataset, base_threshold=base_threshold, higher_threshold=higher_threshold, latitude_limit=latitude_limit)
     
     # Apply coastal mask if required (the else clause is to allow application of land_mask without coast_mask)
     if coast_mask:
@@ -700,9 +703,6 @@ def process_netCDF(
     else:
         processed_dataset = mask_coast(processed_dataset, threshold=0, land_mask=land_mask)
 
-    if adaptive_small:
-        processed_dataset = adaptive_filter_by_size(processed_dataset, base_threshold=base_threshold, higher_threshold=higher_threshold, latitude_limit=latitude_limit)
-
     # Save the processed data back to a new NetCDF file only if dest_path is specified
     if dest_path:
         processed_dataset.to_netcdf(dest_path)
@@ -710,7 +710,7 @@ def process_netCDF(
     return processed_dataset
 
 
-# In[51]:
+# In[ ]:
 
 
 # Atlantic Average
@@ -732,7 +732,7 @@ if __name__ == "__main__":
 # ### *process_directory_netCDF*
 # Processes all the netCDF file in a given directory by calling the process_netCDF function on each one.
 
-# In[42]:
+# In[ ]:
 
 
 def process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False, binarize=True, crop=False, negative=False):
@@ -756,7 +756,7 @@ def process_directory_netCDF(source_dir, dest_dir, threshold=9, bilateral=False,
             process_netCDF(source_path, dest_path, threshold, bilateral, binarize, crop, negative)
 
 
-# In[45]:
+# In[ ]:
 
 
 # if __name__ == '__main__':

@@ -6,7 +6,7 @@
 
 # ## Importing necessary libraries and notebooks
 
-# In[1]:
+# In[ ]:
 
 
 import xarray as xr
@@ -43,7 +43,7 @@ from v_i_OF_Functions import *
 
 # ### ~*calculate_velocity*~
 
-# In[5]:
+# In[ ]:
 
 
 def calculate_velocity(flow, resolution_km=1, time_seconds=24*3600):
@@ -60,7 +60,7 @@ def calculate_velocity(flow, resolution_km=1, time_seconds=24*3600):
 
 # ### *visualize_velocity*
 
-# In[6]:
+# In[ ]:
 
 
 def visualize_velocity(velocity, prev_img):
@@ -72,7 +72,7 @@ def visualize_velocity(velocity, prev_img):
     plt.show()
 
 
-# In[7]:
+# In[ ]:
 
 
 # Zoom
@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
 # ### *segment_aggregations*
 
-# In[8]:
+# In[ ]:
 
 
 def segment_aggregations(mask):
@@ -113,7 +113,7 @@ def segment_aggregations(mask):
 
 # ### *calculate_average_vectors*
 
-# In[9]:
+# In[ ]:
 
 
 def calculate_average_vectors(flow, contours):
@@ -133,7 +133,7 @@ def calculate_average_vectors(flow, contours):
 # ### *haversine*
 # This function was tested and returns correct results (distance in km)
 
-# In[10]:
+# In[ ]:
 
 
 def haversine(lon1, lat1, lon2, lat2):
@@ -156,7 +156,7 @@ def haversine(lon1, lat1, lon2, lat2):
 # ### *calculate_area_haversine*
 # Since the distances are not uniform in the image we can't directly use **cv2.contourArea** to calculate the area as this function calculates it in terms of pixels.
 
-# In[11]:
+# In[ ]:
 
 
 def calculate_area_haversine(contour, lons, lats):
@@ -182,7 +182,7 @@ def calculate_area_haversine(contour, lons, lats):
 
 # ### *generate_lat_lon_arrays*
 
-# In[12]:
+# In[ ]:
 
 
 def generate_lat_lon_arrays(lat_range, lon_range, image_shape):
@@ -198,7 +198,7 @@ def generate_lat_lon_arrays(lat_range, lon_range, image_shape):
 # ### *calculate_velocity_and_angles*
 # A generalization of the calculate_velocity function defined above.
 
-# In[13]:
+# In[ ]:
 
 
 def calculate_velocity_and_angle(vector, lon1, lat1, lon2, lat2, time_seconds=24*3600):
@@ -220,7 +220,7 @@ def calculate_velocity_and_angle(vector, lon1, lat1, lon2, lat2, time_seconds=24
 # 
 # **Right now, this function returns absurd results**.
 
-# In[14]:
+# In[ ]:
 
 
 def calculate_angular_velocity(flow, contour, centroid, resolution_km=1, time_seconds=24*3600, units='degrees'):
@@ -253,7 +253,7 @@ def calculate_angular_velocity(flow, contour, centroid, resolution_km=1, time_se
 
 # ### *plot_aggregations_with_vectors*
 
-# In[15]:
+# In[ ]:
 
 
 def plot_aggregations_with_vectors(img, contours, avg_vectors):
@@ -282,7 +282,7 @@ def plot_aggregations_with_vectors(img, contours, avg_vectors):
     plt.show()
 
 
-# In[16]:
+# In[ ]:
 
 
 if __name__ == "__main__":
@@ -311,7 +311,7 @@ if __name__ == "__main__":
 
 # ### *plot_interactive_contours_with_vectors*
 
-# In[17]:
+# In[ ]:
 
 
 def plot_interactive_contours_with_vectors(img, contours, avg_vectors, flow, lons, lats, grid_step=10):
@@ -387,7 +387,7 @@ def plot_interactive_contours_with_vectors(img, contours, avg_vectors, flow, lon
     fig.show()
 
 
-# In[18]:
+# In[ ]:
 
 
 if __name__ == "__main__":
